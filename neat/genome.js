@@ -1,4 +1,4 @@
-function creteGenomeConstrutor(spec) {
+function createGenomeConstrutor(spec) {
 	var perturbChance = spec.perturbChance,
 	mutateConnectionsChances = spec.mutateConnectionsChances,
 	linkMutationChance = spec.linkMutationChance,
@@ -8,12 +8,23 @@ function creteGenomeConstrutor(spec) {
 	biasMutationChance = spec.biasMutationChance,
 	stepSize = spec.stepSize,
 	numberOfInputs = spec.numberOfInputs,
-	maxNodes = spec.maxNodes,
 	numberOfOuputs = spec.numberOfOuputs,
+	maxNodes = spec.maxNodes,
 	newInnovation = spec.newInnovation,
 	deltaDisjoint = spec.deltaDisjoint,
 	deltaWeights = spec.deltaWeights,
 	deltaThreshold = spec.deltaThreshold;
+
+	// Returns a random integer between min (included) and max (excluded)
+	// Using Math.round() will give you a non-uniform distribution!
+	function randomInteger(min, max) {
+		return Math.floor(Math.random() * (max - min)) + min;
+	}
+	function sigmoid(x) {
+		return 1/(1+Math.exp(-x));
+		//return 2/(1+math.exp(-4.9*x))-1
+	}
+
 
 	function create(spec) {
 		/* set attribut */
@@ -26,7 +37,9 @@ function creteGenomeConstrutor(spec) {
 				disable : disableMutationChance,
 				bias : biasMutationChance,
 				stepSize : stepSize
-		};
+		},
+		maxneuron = numberOfInputs;
+
 		if (spec) {
 			if (spec.genes) {
 				spec.genes.forEach(function(gene) {
@@ -41,19 +54,19 @@ function creteGenomeConstrutor(spec) {
 			}
 			if (spec.mutationRates) {
 				mutationRates = {
-					connections : spec.connections,
-					link : spec.link,
-					node : spec.node,
-					enable : spec.enable,
-					disable : spec.disable,
-					bias : spec.bias,
-					stepSize : spec.stepSize
+					connections : spec.mutationRates.connections,
+					link : spec.mutationRates.link,
+					node : spec.mutationRates.node,
+					enable : spec.mutationRates.enable,
+					disable : spec.mutationRates.disable,
+					bias : spec.mutationRates.bias,
+					stepSize : spec.mutationRates.stepSize
 				};
 			}
+			maxneuron = spec.maxneuron; // cursor representing the index of the max inner neuron, it can be calculated from genes.into et genes.out
 		}
 		var fitness = 0,
-		innovation = 0,
-		maxneuron = spec.maxneuron || numberOfInputs, // cursor representing the index of the max inner neuron, it can be calculated from genes.into et genes.out
+		//innovation = 0, seem not to be used
 		setFitness = function(num) {
 			fitness = num;
 		},
@@ -64,9 +77,9 @@ function creteGenomeConstrutor(spec) {
 		newNeuron = function() {
 			return {incoming : [],value : 0.0};
 		},
-		network = [],
+		network = {},
 		generateNetwork = function() {
-			network = [];
+			network = {};
 
 			var i;
 			for (i=0; i<numberOfInputs; i++) {
@@ -84,16 +97,12 @@ function creteGenomeConstrutor(spec) {
 					if (network[gene.out] === undefined) {
 						network[gene.out] = newNeuron();
 					}
-					network.neurons[gene.out].incoming.push(gene);
+					network[gene.out].incoming.push(gene);
 					if (network[gene.into] === undefined) {
 						network[gene.into] = newNeuron();
 					}
 				}
 			});
-		},
-		sigmoid = function(x) {
-			return 1/(1+Math.exp(-x));
-			//return 2/(1+math.exp(-4.9*x))-1
 		},
 		evaluateNetwork = function(inputs) {
 			var i, sum, neuron,outputs = [];
@@ -103,7 +112,7 @@ function creteGenomeConstrutor(spec) {
 				network[i].value = inputs[i];
 			}
 
-			Object.key(network).forEach(function(key) {
+			Object.keys(network).forEach(function(key) {
 				sum = 0;
 				neuron = network[key];
 
@@ -157,15 +166,15 @@ function creteGenomeConstrutor(spec) {
 				neuron[gene.out] = true;
 				neuron[gene.into] = true;
 			});
-			keys = Object.key(neuron);
+			keys = Object.keys(neuron);
 
 			if (notInput) {
 				do {
-					result = keys[Math.random(0,keys.length)];
+					result = parseInt(keys[randomInteger(0,keys.length)]);
 				} while (result < numberOfInputs);
 				return result;
 			}
-			return keys[Math.random(0,keys.length)];
+			return parseInt(keys[randomInteger(0,keys.length)]);
 		},
 		newGene = function() {
 			return {
@@ -177,19 +186,21 @@ function creteGenomeConstrutor(spec) {
 			};
 		},
 		containsLink = function(link) {
+			var result = false;
 			genes.forEach(function(gene) {
 				if (gene.into === link.into && gene.out === link.out) {
-					return true;
+					result = true;
 				}
 			});
-			return false;
+			return result;
 		},
 		linkMutate = function(forceBias) {
 			var neuron1 = randomNeuron(false),
 			neuron2 = randomNeuron(true),
 			tmp, newLink;
 
-			if (neuron1 < numberOfInputs && neuron2 < numberOfInputs) {
+			if (neuron1 < numberOfInputs && neuron2 < numberOfInputs
+				|| neuron1 === neuron2) {
 				return;
 			}
 			if (neuron1 > neuron2) {
@@ -215,7 +226,7 @@ function creteGenomeConstrutor(spec) {
 		nodeMutate = function() {
 			if (!genes.length) {return;}
 
-			var gene = genes[Math.random(0,genes.length)];
+			var gene = genes[randomInteger(0,genes.length)];
 
 			if (!gene.enabled) {return;}
 			gene.enabled = false;
@@ -232,7 +243,7 @@ function creteGenomeConstrutor(spec) {
 				into : maxneuron,
 				weight : gene.weight,
 				enabled : true,
-				innovation : newInnovation
+				innovation : newInnovation()
 			});
 
 			maxneuron++;
@@ -247,14 +258,14 @@ function creteGenomeConstrutor(spec) {
 				}
 			});
 			if (candidates.length>0) {
-				gene = candidates[Math.random(0,candidates.length-1)];
+				gene = candidates[randomInteger(0,candidates.length)];
 				gene.enabled = !gene.enabled;
 			}
 		},
 
 		mutate = function() {
-			Object.key(mutationRates).forEach(function(key) {
-				mutationRates[key] *= (0.95 + Math.random(0,1)*0.10263); 
+			Object.keys(mutationRates).forEach(function(key) {
+				mutationRates[key] *= (0.95 + randomInteger(0,2)*0.10263); 
 			});
 
 			if (Math.random() < mutationRates.connections) {
@@ -297,12 +308,13 @@ function creteGenomeConstrutor(spec) {
 			}
 		},
 		hasInnovation = function(innovation) {
+			var result = false;
 			genes.forEach(function(gene) {
 				if (gene.innovation === innovation) {
-					return true;
+					result = true;
 				}
 			});
-			return false;
+			return result;
 		}, 
 		getInnovations = function() {
 			var array = [];
@@ -311,10 +323,11 @@ function creteGenomeConstrutor(spec) {
 			});
 			return array;
 		},
-		copyInnovation = function() {
+		copyInnovation = function(innovation) {
+			var result = undefined;
 			genes.forEach(function(gene) {
 				if (gene.innovation === innovation) {
-					return {
+					result = {
 						out : gene.out,
 						into : gene.into,
 						weight : gene.weight,
@@ -323,15 +336,16 @@ function creteGenomeConstrutor(spec) {
 					};
 				}
 			});
-			return undefined;
+			return result;
 		},
 		getWeightOfInnovation = function(innovation) {
+			var result = undefined;
 			genes.forEach(function(gene) {
 				if (gene.innovation === innovation) {
-					return gene.weight;
+					result = gene.weight;
 				}
 			});
-			return undefined;
+			return result;
 		},
 		disjoint = function(genomeP) {
 			var dis = 0,
@@ -380,7 +394,7 @@ function creteGenomeConstrutor(spec) {
 			geneP;
 			genes.forEach(function(gene) {
 				geneP = genomeP.copyInnovation(gene.innovation);
-				if (Math.random(2) === 1 && geneP !== undefined && geneP.enabled) {
+				if (randomInteger(0,2) === 1 && geneP !== undefined && geneP.enabled) {
 					childGenes.push(geneP);
 				} else {
 					childGenes.push(gene); // it must be copied be the constructor
@@ -392,13 +406,37 @@ function creteGenomeConstrutor(spec) {
 				mutationRates : mutationRates
 			});
 		},
-		display = function(,
+		exportSigma = function() {
+			var sig = {
+				nodes : [],
+				edges : [],
+			},
+			c;
+			Object.keys(network).forEach(function(key) {
+				c = Math.floor(network[key].value*16);
+				sig.nodes.push({
+					id : key,
+					color : '#'+c+c+'0',
+					size : 1,
+				});
+			});
+
+			genes.forEach(function(gene) {
+				c = gene.weight;
+				sig.edges.push({
+					id : gene.innovation.toString(),// + gene.weight.toString(),
+					source : gene.into.toString(),
+					out : gene.out.toString(),
+				});
+			});
+			return sig;
+		},
 		save;
 		
 		/* return object */
 		return Object.freeze({
 			save : save,
-			display : display,
+			exportSigma : exportSigma,
 			mutate : mutate,
 			setFitness : setFitness,
 			getFitness : getFitness,
@@ -414,6 +452,19 @@ function creteGenomeConstrutor(spec) {
 			getMaxneuron : getMaxneuron,
 			getWeightOfInnovation : getWeightOfInnovation,
 			crossover : crossover,
+
+			/* decomment for testing
+			pointMutate : pointMutate,
+			randomNeuron : randomNeuron,
+			containsLink : containsLink,
+			linkMutate : linkMutate,
+			network : network,
+			genes : genes,
+			nodeMutate : nodeMutate,
+			enableDisableMutate : enableDisableMutate,
+			disjoint : disjoint,
+			weights : weights,
+			/* end decomment for testing */
 		});
 	}
 	return create;
