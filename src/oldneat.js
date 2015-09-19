@@ -26,10 +26,6 @@ function createNeat(spec) {
 	getInputs = function() {
 		return input;
 	}
-
-
-	let setInputs = function(inputs) {
-
 }
 neat = {};
 {
