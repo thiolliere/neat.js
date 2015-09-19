@@ -1,43 +1,88 @@
-neat = {};
-{
-	population : 300,
-	deltaDisjoint : 2.0,
-	deltaWeights : 0.4,
-	deltaThreshold : 1.0,
+function createNeat(spec) {
+	var population = spec.population || 300, // assert > 0
+	deltaDisjoint = spec.deltaDisjoint || 2.0,
+	deltaWeights = spec.deltaWeights || 0.4,
+	deltaThreshold = spec.deltaThreshold || 1.0,
 
-	staleSpecies : 15,
+	staleSpecies = spec.staleSpecies || 15,
 
-	mutateConnectionsChance : 0.25,
-	perturbChance : 0.90,
-	crossoverChance : 0.75,
-	linkMutationChance : 2.0,
-	nodeMutationChance : 0.50,
-	biasMutationChance : 0.40,
-	stepSize : 0.1,
-	disableMutationChance : 0.4,
-	enableMutationChance : 0.2,
+	mutateConnectionsChances = spec.mutateConnectionsChances || 0.25,
+	perturbChance = spec.perturbChance || 0.90,
+	crossoverChance = spec.crossoverChance || 0.75,
+	linkMutationChance = spec.linkMutationChance || 2.0,
+	nodeMutationChance = spec.nodeMutationChance || 0.50,
+	biasMutationChance = spec.biasMutationChance || 0.40,
+	stepSize = spec.stepSize || 0.1,
+	disableMutationChance = spec.disableMutationChance || 0.4,
+	enableMutationChance = spec.enableMutationChance || 0.2,
 
-	timeoutConstant : 20,
+	numberOfInputs = spec.numberOfInputs, // assert exist
+	numberOfOuputs = spec.numberOfOuputs, // assert exist
 
-	maxNodes : 1000000,
+	maxNodes = spec.maxNodes || 1000000,
+	display = {
+		line : spec.display.line || numberOfInputs,
+		column : spec.display.column || 1,
+		bps : spec.display.bps || 1,
+	};
+	if (spec.display) {
+		display = {
+			line : spec.display.line,
+			column : spec.display.column,
+			bps : spec.display.bps,
+		},
+	}
 
-	numberOfOutputs = 4;
-	numberOfInputs = 100;
+	var pool = createPool({
+		population : population,
+		deltaDisjoint : deltaDisjoint,
+		deltaWeights : deltaWeights,
+		deltaThreshold : deltaThreshold,
+
+		staleSpecies : staleSpecies,
+
+		mutateConnectionsChances : mutateConnectionsChances,
+		perturbChance : perturbChance,
+		crossoverChance : crossoverChance,
+		linkMutationChance : linkMutationChance,
+		nodeMutationChance : nodeMutationChance,
+		biasMutationChance : biasMutationChance,
+		stepSize : stepSize,
+		disableMutationChance : disableMutationChance,
+		enableMutationChance : enableMutationChance,
+
+		numberOfInputs : numberOfInputs,
+		numberOfOuputs : numberOfOuputs,
+
+		maxNodes : maxNodes,
+		display : display,
+	}),
+	function compute(inputs) {
+		return pool.evaluateCurrentGenome();
+	},
+	function setFitness(fitness) {
+		pool.setFitnessOfCurrentGenome(fitness);
+	},
+	function getFitess() {
+		pool.getFitnessOfCurrentGenome();
+	},
+	function addFitness(fitness) {
+		pool.setFitnessOfCurrentGenome(pool.getFitnessOfCurrentGenome()+fitness);
+	},
+	function evolve() {
+		pool.setCurrentGenomeNextOne();
+	},
+	function changeFitnessEvaluation() {
+		resetAllFitness();
+		pool.setCurrentGenomeFirstOne();
+	};
+
+	return Object.freeze({
+		compute : compute,
+		setFitness : setFitness,
+		getFitness : getFitness,
+		addFitness : addFitness,
+		evolve : evolve,
+		changeFitnessEvaluation : changeFitnessEvaluation,
+	});
 };
-
-/* method */
-create
-/* evaluate : BOF */
-obj.evaluate(inputs);
-obj.setFitness();
-obj.getFitness();
-obj.addFitness(relativeNumber);
-obj.evolve();
-/* automticly reset current fitness */
-obj.changeFitnessEvaluation();
-
-/* on peut imaginer different model :
- * avec une evaluation de la performance a sa mort
- * avec une evaluation de la performance de maniere asynchrone 
- * (tout le  temps) et une method pour tuer
- * avec evaluation tout le temps et une vie chronométré...

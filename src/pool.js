@@ -19,6 +19,11 @@ function createPool(spec) {
 		innovation++;
 		return innovation;
 	},
+	display = {
+		line : spec.display.line,
+		column : spec.display.column,
+		bps : spec.display.bps
+	},
 	/* others */
 	crossoverChance = spec.crossoverChance,
 	staleSpecies = spec.staleSpecies,
@@ -44,7 +49,8 @@ function createPool(spec) {
 		newInnovation : newInnovation,
 		deltaDisjoint : deltaDisjoint,
 		deltaWeights : deltaWeights,
-		deltaThreshold : deltaThreshold
+		deltaThreshold : deltaThreshold,
+		display : display
 	}),
 	species = [],
 	maxFitness,
@@ -230,6 +236,7 @@ function createPool(spec) {
 			});
 		});
 
+		resetAllFitness();
 		generation++;
 	},
 	setCurrentGenomeNextOne = function() {
@@ -251,6 +258,20 @@ function createPool(spec) {
 	getGeneration = function() {
 		return generation;
 	},
+	getFitnessOfCurrentGenome = function() {
+		return species[currentSpecies][currentGenome].getFitness();
+	},
+	exportSigmaCurrent = function() {
+		return species[currentSpecies][currentGenome].exportSigma();
+	},
+	resetAllFitness = function() {
+		species.forEach(function (specie) {
+			specie.forEach(function (genome) {
+				genome.setFitness(0);
+			});
+		});
+	},
+	save,
 	i;
 
 	for (i=0; i<population; i++) {
@@ -263,7 +284,10 @@ function createPool(spec) {
 		setFitnessOfCurrentGenome : setFitnessOfCurrentGenome,
 		setCurrentGenomeNextOne : setCurrentGenomeNextOne,
 		setCurrentGenomeFirstOne : setCurrentGenomeFirstOne,
+		getFitnessOfCurrentGenome : getFitnessOfCurrentGenome,
 		getGeneration : getGeneration,
+		exportSigmaCurrent : exportSigmaCurrent,
+		resetAllFitness : resetFitness,
 
 		/* private attributes */
 		/**/

@@ -14,6 +14,11 @@ function createGenomeConstrutor(spec) {
 	deltaDisjoint = spec.deltaDisjoint,
 	deltaWeights = spec.deltaWeights,
 	deltaThreshold = spec.deltaThreshold;
+	display = {
+		line : spec.display.line,
+		column : spec.display.column,
+		bps : spec.display.bps,
+	};
 
 	// Returns a random integer between min (included) and max (excluded)
 	// Using Math.round() will give you a non-uniform distribution!
