@@ -26,7 +26,7 @@ function createGenomeConstrutor(spec) {
 	}
 
 
-	function create(spec) {
+	function createGenome(spec) {
 		/* set attribut */
 		var genes = [],
 		mutationRates = {
@@ -137,7 +137,7 @@ function createGenomeConstrutor(spec) {
 			return globalRank;
 		},
 		copy = function() {
-			return create({
+			return createGenome({
 				genes : genes,
 				maxneuron : maxneuron,
 				mutationRates : mutationRates, // must be copied by constructor and not referenced
@@ -170,11 +170,11 @@ function createGenomeConstrutor(spec) {
 
 			if (notInput) {
 				do {
-					result = parseInt(keys[randomInteger(0,keys.length)]);
+					result = parseInt(keys[randomInteger(0,keys.length)],10);
 				} while (result < numberOfInputs);
 				return result;
 			}
-			return parseInt(keys[randomInteger(0,keys.length)]);
+			return parseInt(keys[randomInteger(0,keys.length)],10);
 		},
 		newGene = function() {
 			return {
@@ -199,7 +199,7 @@ function createGenomeConstrutor(spec) {
 			neuron2 = randomNeuron(true),
 			tmp, newLink;
 
-			if (neuron1 < numberOfInputs && neuron2 < numberOfInputs
+			if ((neuron1 < numberOfInputs && neuron2 < numberOfInputs)
 				|| neuron1 === neuron2) {
 				return;
 			}
@@ -324,7 +324,7 @@ function createGenomeConstrutor(spec) {
 			return array;
 		},
 		copyInnovation = function(innovation) {
-			var result = undefined;
+			var result;
 			genes.forEach(function(gene) {
 				if (gene.innovation === innovation) {
 					result = {
@@ -339,7 +339,7 @@ function createGenomeConstrutor(spec) {
 			return result;
 		},
 		getWeightOfInnovation = function(innovation) {
-			var result = undefined;
+			var result;
 			genes.forEach(function(gene) {
 				if (gene.innovation === innovation) {
 					result = gene.weight;
@@ -400,7 +400,7 @@ function createGenomeConstrutor(spec) {
 					childGenes.push(gene); // it must be copied be the constructor
 				}
 			});
-			return create({
+			return createGenome({
 				genes : genes,
 				maxneuron : Math.max(maxneuron, genomeP.getMaxneuron()),
 				mutationRates : mutationRates
@@ -435,6 +435,7 @@ function createGenomeConstrutor(spec) {
 		
 		/* return object */
 		return Object.freeze({
+			/* main method */
 			save : save,
 			exportSigma : exportSigma,
 			mutate : mutate,
@@ -445,15 +446,18 @@ function createGenomeConstrutor(spec) {
 			evaluateNetwork : evaluateNetwork,
 			generateNetwork : generateNetwork,
 			copy : copy,
-			hasInnovation : hasInnovation,
 			sameSpecies : sameSpecies,
+			crossover : crossover,
+
+			/* other method used by genome to
+			 * proceed with other genome mainly*/
+			hasInnovation : hasInnovation,
 			getInnovations : getInnovations,
 			copyInnovation : copyInnovation,
 			getMaxneuron : getMaxneuron,
 			getWeightOfInnovation : getWeightOfInnovation,
-			crossover : crossover,
 
-			/* decomment for testing
+			/* private attribute
 			pointMutate : pointMutate,
 			randomNeuron : randomNeuron,
 			containsLink : containsLink,
@@ -464,8 +468,8 @@ function createGenomeConstrutor(spec) {
 			enableDisableMutate : enableDisableMutate,
 			disjoint : disjoint,
 			weights : weights,
-			/* end decomment for testing */
+			*/
 		});
 	}
-	return create;
+	return createGenome;
 }
