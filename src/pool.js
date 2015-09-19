@@ -199,13 +199,13 @@ function createPool(spec) {
 		var sum,children,randomSpecies,breed,i;
 
 		cullSpecies(false);
-		rankGlobally(); //TODO
-		removeStaleSpecies(); //TODO
-		rankGlobally(); //TODO
+		rankGlobally();
+		removeStaleSpecies();
+		rankGlobally();
 		species.forEach(function(specie) {
 			specie.calculateAverageFitness();
 		});
-		removeWeakSpecies(); //TODO
+		removeWeakSpecies();
 
 		sum = totalAverageFitness();
 		children = [];
@@ -265,7 +265,7 @@ function createPool(spec) {
 		setCurrentGenomeFirstOne : setCurrentGenomeFirstOne,
 		getGeneration : getGeneration,
 
-		/* private attributes
-		*/
+		/* private attributes */
+		/**/
 	});
 }
