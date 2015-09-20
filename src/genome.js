@@ -418,7 +418,7 @@ function createGenomeConstrutor(spec) {
 			},
 			c;
 			Object.keys(network).forEach(function(key) {
-				c = Math.floor(network[key].value*16);
+				c = Math.floor(network[key].value*16).toString(16);
 				sig.nodes.push({
 					id : key,
 					color : '#'+c+c+'0',
@@ -427,13 +427,23 @@ function createGenomeConstrutor(spec) {
 			});
 
 			genes.forEach(function(gene) {
-				c = gene.weight;
+				if (!gene.enabled) {
+					c = '#111"
+				} else if (gene.weight>0) {
+					c = '#f00';
+				} else {
+					c = '#00f';
+				}
 				sig.edges.push({
-					id : gene.innovation.toString(),// + gene.weight.toString(),
-					source : gene.into.toString(),
-					out : gene.out.toString(),
+					id : 'innovation : '+gene.innovation.toString(10)+', weight : '+gene.weight.toString(10),
+					source : gene.into.toString(10),
+					out : gene.out.toString(10),
+					size : Math.abs(gene.weight),
+					color : c
 				});
 			});
+
+
 			return sig;
 		},
 		save;
