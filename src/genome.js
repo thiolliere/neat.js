@@ -82,6 +82,8 @@ function createGenomeConstrutor(spec) {
 		newNeuron = function() {
 			return {
 				incoming : [],
+				layer : 0,
+				outcoming : [],
 				value : 0.0,
 			};
 		},
@@ -112,8 +114,54 @@ function createGenomeConstrutor(spec) {
 					if (network[gene.into] === undefined) {
 						network[gene.into] = newNeuron();
 					}
+					network[gene.into].outcoming.push(gene);
 				}
 			});
+
+			/* instantiate topologicalOrder */
+			//TODO
+			var L,S,n,m,i,layer,nextLayer;
+			L = [];
+			S = [];
+			for (i=0; i<numberOfInputs; i++) {
+				S.push(network[i]);
+			}
+
+			Object.keys(network).forEach(function(key) {
+				network[key].marked = 0;
+			});
+
+			layer = 0;
+			nextLayer = S.length;
+			while (S.length !== 0) {
+				n = S[0];
+				n.layer = layer;
+				console.log(layer);
+				S.splice(0,1);
+				L.push(n);
+
+				nextLayer--;
+				if (nextLayer === 0) {
+					nextLayer = S.length;
+					layer++;
+				}
+
+				n.outcoming.forEach(function(gene) {
+					m = network[gene.out];
+					m.marked++;
+					if (m.marked === m.incoming.length) {
+						S.push(m);
+					}
+				});
+			}
+			
+			Object.keys(network).forEach(function(key) {
+				delete network[key].marked;
+			});
+
+			topologicalOrder = L;
+			topologicalOrder.splice(0,numberOfInputs);
+			console.log(topologicalOrder);
 		},
 		evaluateNetwork = function(inputs) {
 			var i, sum, neuron,outputs = [];
@@ -129,9 +177,10 @@ function createGenomeConstrutor(spec) {
 			/* or just for now use an array topologicalOrder
 			 * that point on neuron in the right order */
 			/* the topological Order may not conatin inuputs */
-			Object.keys(network).forEach(function(key) {
+//			Object.keys(network).forEach(function(key) {
+//				neuron = network[key];
+			topologicalOrder.forEach(function(neuron) {
 				sum = 0;
-				neuron = network[key];
 
 				neuron.incoming.forEach(function(gene) {
 					sum += gene.weight*network[gene.into].value;
@@ -433,8 +482,8 @@ function createGenomeConstrutor(spec) {
 				c = Math.floor(network[key].value*16).toString(16);
 				sig.nodes.push({
 					id : key,
-					incoming : network[key].incoming.length, // for topological sort
-					x : Math.random(),
+					label : topologicalOrder.indexOf(network[key]).toString(10),
+					x : network[key].layer*10,
 					y : Math.random(),
 					color : '#'+c+c+'0',
 					size : 1,
@@ -450,7 +499,8 @@ function createGenomeConstrutor(spec) {
 					c = '#00f';
 				}
 				sig.edges.push({
-					id : 'innovation : '+gene.innovation.toString(10)+', weight : '+gene.weight.toString(10),
+					id : gene.innovation.toString(10),
+					label : 'innovation : '+gene.innovation.toString(10)+', weight : '+gene.weight.toString(10),
 					source : gene.into.toString(10),
 					target : gene.out.toString(10),
 					size : Math.abs(gene.weight),
