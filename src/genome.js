@@ -68,7 +68,7 @@ function createGenomeConstrutor(spec) {
 					stepSize : spec.mutationRates.stepSize
 				};
 			}
-			maxneuron = spec.maxneuron; // cursor representing the index of the max inner neuron, it can be calculated from genes.into et genes.out
+			maxneuron = spec.maxneuron; // cursor representing the index of the max inner neuron, it can be calculated from genes.into et genes.out and also can be not use ... if I wanted to make a better implementation
 		}
 		var fitness = 0,
 		//innovation = 0, seem not to be used
@@ -80,10 +80,16 @@ function createGenomeConstrutor(spec) {
 		},
 		//adjustedFitness seem not to be used
 		newNeuron = function() {
-			return {incoming : [],value : 0.0};
+			return {
+				incoming : [],
+				value : 0.0,
+			};
 		},
 		network = {},
+		topologicalOrder = [],
 		generateNetwork = function() {
+			//TODO with outcoming and topological order
+			//topological order is an array of layer which is an array of neuron
 			network = {};
 
 			var i;
@@ -117,6 +123,12 @@ function createGenomeConstrutor(spec) {
 				network[i].value = inputs[i];
 			}
 
+			/* the order is not guaranted */
+			/* must be change to a true graph with node
+			 * updated while mutating and an topological sort */
+			/* or just for now use an array topologicalOrder
+			 * that point on neuron in the right order */
+			/* the topological Order may not conatin inuputs */
 			Object.keys(network).forEach(function(key) {
 				sum = 0;
 				neuron = network[key];
@@ -159,7 +171,7 @@ function createGenomeConstrutor(spec) {
 			});
 		},
 		randomNeuron = function(notInput) {
-			var neuron = [], i, o, keys, result;
+			var neuron = {}, i, o, keys, result;
 			neuron.length = numberOfInputs;
 			for (i=0; i<numberOfInputs; i++) {
 				neuron[i] = true;
@@ -421,6 +433,9 @@ function createGenomeConstrutor(spec) {
 				c = Math.floor(network[key].value*16).toString(16);
 				sig.nodes.push({
 					id : key,
+					incoming : network[key].incoming.length, // for topological sort
+					x : Math.random(),
+					y : Math.random(),
 					color : '#'+c+c+'0',
 					size : 1,
 				});
@@ -428,7 +443,7 @@ function createGenomeConstrutor(spec) {
 
 			genes.forEach(function(gene) {
 				if (!gene.enabled) {
-					c = '#111"
+					c = '#111'
 				} else if (gene.weight>0) {
 					c = '#f00';
 				} else {
@@ -437,17 +452,65 @@ function createGenomeConstrutor(spec) {
 				sig.edges.push({
 					id : 'innovation : '+gene.innovation.toString(10)+', weight : '+gene.weight.toString(10),
 					source : gene.into.toString(10),
-					out : gene.out.toString(10),
+					target : gene.out.toString(10),
 					size : Math.abs(gene.weight),
 					color : c
 				});
 			});
 
-
+//			/* topological sort */
+//			var t = {}, toDecrease = [],toDelete = [],i,n;
+//			t.buffer = sig.nodes.splice(0,numberOfInputs);
+//			t.toOrder = sig.nodes;
+//			t.ordered = [];
+//			t.edges = sig.edges;
+//
+//			var layer = 0,
+//			notNextLayer = t.buffer.length;
+//			while (t.buffer.length > 0) {
+//				n = t.buffer.splice(0,1);
+//				n.layer = layer;
+//				t.ordered.push(n);
+//
+//				if (!notNextLayer) {
+//					notNextLayer = t.buffer.length;
+//					layer++;
+//				} else {
+//					notNextLayer--;
+//				}
+//				t.edges.forEach(function(edge) {
+//					if (edge.source === n.id) {
+//						toDecrease.push(edge.target);
+//						toDelete.push(edge);
+//					}
+//				});
+//				toDelete.forEach(function(edge) {
+//					t.edges.slice(t.edges.indexOf(edge));
+//				});
+//				toDelete = [];
+//				toDecrease.forEach(function(node) {
+//					t.toOrder[t.toOrder.indexOf(node)].incoming--;
+//				});
+//				toDecrease = [];
+//				for (i=0; i<t.toOrder.length; i++) {
+//					if (t.toOrder[i].incoming.length === 0) {
+//						t.buffer.push(t.toOrder[i]);
+//						t.toOrder.splice(i,1);
+//						i--;
+//					}
+//				}
+//			}
+//
+//			sig.node = t.ordered;
+//
+//			sig.node.forEach(function(node) {
+//				node.x = node.layer*10;
+//			});
+//
 			return sig;
 		},
 		save;
-		
+
 		/* return object */
 		return Object.freeze({
 			/* main method */
