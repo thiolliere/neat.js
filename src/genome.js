@@ -13,7 +13,7 @@ function createGenomeConstrutor(spec) {
 	newInnovation = spec.newInnovation,
 	deltaDisjoint = spec.deltaDisjoint,
 	deltaWeights = spec.deltaWeights,
-	deltaThreshold = spec.deltaThreshold;
+	deltaThreshold = spec.deltaThreshold,
 	display = {
 		line : spec.display.line,
 		column : spec.display.column,
@@ -60,7 +60,7 @@ function createGenomeConstrutor(spec) {
 			return fitness;
 		},
 		network = [], // array of node, can be created from genes with generateNetwork
-		newNode = function(type) {
+		newNode = function() {
 			return {
 				incoming : [], // array of referenced to gene in coming
 				layer : undefined, // index of the layer in the topological order
@@ -70,35 +70,11 @@ function createGenomeConstrutor(spec) {
 				value : undefined, // value taken during the evaluation
 			};
 		},
-		/* generate the network from the gene, fill incoming and outcoming arrays */
-		generateNetwork = function() {
-			network = [];
-
-			var i;
-			for (i=0; i<numberOfInputs; i++) {
-				network.push(newNode());
-			}
-			for (i=0; i<numberOfOuputs; i++) {
-				network.push(newNode());
-			}
-			genes.forEach(function(gene) {
-				if (gene.enabled) {
-					if (network[gene.out] === undefined) {
-						network[gene.out] = newNode();
-					}
-					network[gene.out].incoming.push(gene);
-					if (network[gene.into] === undefined) {
-						network[gene.into] = newNode();
-					}
-					network[gene.into].outcoming.push(gene);
-				}
-			});
-		},
-		topologicalOrder = []; // referenced to node to evaluate in the right order
-		/* re-set indexs and layers of all node and also reset topologicalOrder */
+		topologicalOrder = [], // referenced to node to evaluate in the right order
 		resetTopologicalOrder = function() {
-			var L,S,n,m,i,layer,nextLayer, index, node, indexInLayer
-			L = [],
+			/* re-set indexs and layers of all node and also reset topologicalOrder */
+			var L,S,n,m,layer,nextLayer, index, indexInLayer;
+			L = [];
 			S = [];
 
 			network.forEach(function(node) {
@@ -149,9 +125,33 @@ function createGenomeConstrutor(spec) {
 			topologicalOrder = L;
 			topologicalOrder.splice(0,numberOfInputs);
 		},
-		/* take an array of inputs and return an array of outputs */
+		generateNetwork = function() {
+			/* generate the network from the gene, fill incoming and outcoming arrays */
+			network = [];
+
+			var i;
+			for (i=0; i<numberOfInputs; i++) {
+				network.push(newNode());
+			}
+			for (i=0; i<numberOfOuputs; i++) {
+				network.push(newNode());
+			}
+			genes.forEach(function(gene) {
+				if (gene.enabled) {
+					if (network[gene.out] === undefined) {
+						network[gene.out] = newNode();
+					}
+					network[gene.out].incoming.push(gene);
+					if (network[gene.into] === undefined) {
+						network[gene.into] = newNode();
+					}
+					network[gene.into].outcoming.push(gene);
+				}
+			});
+		},
 		evaluateNetwork = function(inputs) {
-			var i, sum, neuron,outputs = [];
+			/* take an array of inputs and return an array of outputs */
+			var i, sum, outputs = [];
 
 			for (i=0; i<numberOfInputs; i++) {
 				network[i].value = inputs[i];
@@ -209,11 +209,9 @@ function createGenomeConstrutor(spec) {
 			isAnOutput = function(n) {
 				if (n>=numberOfInputs && n<numberOfInputs+numberOfOuputs) {
 					return true;
-				} else {
-					return false;
 				}
-			}
-
+				return false;
+			};
 			while (node1 === node2
 					|| isAnOutput(node1)
 					) {
@@ -237,7 +235,7 @@ function createGenomeConstrutor(spec) {
 			});
 			return result;
 		},
-		linkMutate = function(forceBias) {
+		linkMutate = function() { //forceBias WHY ?
 			/* create a new link between a node that can be an input
 			 * and a node that cannot be an input. also it doesn't create
 			 * a link between an output to something other than output
@@ -549,14 +547,12 @@ function createGenomeConstrutor(spec) {
 			hasInnovation : hasInnovation,
 			getInnovations : getInnovations,
 			copyInnovation : copyInnovation,
-			getMaxneuron : getMaxneuron,
 			getWeightOfInnovation : getWeightOfInnovation,
 
 			/* debug attribute */
 			linkMutate : linkMutate,
 			nodeMutate : nodeMutate,
 			enableDisableMutate : enableDisableMutate,
-			mutate : mutate,
 			/**/
 		});
 	}
