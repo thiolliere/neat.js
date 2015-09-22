@@ -9,7 +9,7 @@ function createGenomeConstrutor(spec) {
 	stepSize = spec.stepSize,
 	numberOfInputs = spec.numberOfInputs,
 	numberOfOuputs = spec.numberOfOuputs,
-	maxNodes = spec.maxNodes,
+	//	maxNodes = spec.maxNodes,
 	newInnovation = spec.newInnovation,
 	deltaDisjoint = spec.deltaDisjoint,
 	deltaWeights = spec.deltaWeights,
@@ -32,119 +32,97 @@ function createGenomeConstrutor(spec) {
 
 
 	function createGenome(spec) {
-		/* set attribut */
-		var genes = [],
-		mutationRates = {
-				connections : mutateConnectionsChances,
-				link : linkMutationChance,
-				node : nodeMutationChance,
-				enable : enableMutationChance,
-				disable : disableMutationChance,
-				bias : biasMutationChance,
-				stepSize : stepSize
+		/* set attribut and method */
+		var mutationRates = {
+			connections : mutateConnectionsChances,
+			link : linkMutationChance,
+			node : nodeMutationChance,
+			enable : enableMutationChance,
+			disable : disableMutationChance,
+			bias : biasMutationChance,
+			stepSize : stepSize
 		},
-		maxneuron = numberOfInputs;
-
-		if (spec) {
-			if (spec.genes) {
-				spec.genes.forEach(function(gene) {
-					genes.push({
-						into : gene.into,
-						out : gene.out,
-						weight : gene.weight,
-						enabled : gene.enabled,
-						innovation : gene.innovation
-					});
-				});
-			}
-			if (spec.mutationRates) {
-				mutationRates = {
-					connections : spec.mutationRates.connections,
-					link : spec.mutationRates.link,
-					node : spec.mutationRates.node,
-					enable : spec.mutationRates.enable,
-					disable : spec.mutationRates.disable,
-					bias : spec.mutationRates.bias,
-					stepSize : spec.mutationRates.stepSize
-				};
-			}
-			maxneuron = spec.maxneuron; // cursor representing the index of the max inner neuron, it can be calculated from genes.into et genes.out and also can be not use ... if I wanted to make a better implementation
-		}
-		var fitness = 0,
-		//innovation = 0, seem not to be used
+		genes = [], 
+		newGene = function() {
+			return {
+				into : 0, // index of the source in the network
+				out : 0, // index of the target in the network
+				weight : 0, // weight of the connection
+				enabled : true, // whereas the connection is active
+				innovation : 0 // keeper used to crossover some genome efficiently
+			};
+		},
+		fitness = 0, // use by the pool to note the genome
 		setFitness = function(num) {
 			fitness = num;
 		},
 		getFitness = function() {
 			return fitness;
 		},
-		//adjustedFitness seem not to be used
-		newNeuron = function() {
+		network = [], // array of node, can be created from genes with generateNetwork
+		newNode = function(type) {
 			return {
-				incoming : [],
-				layer : 0,
-				outcoming : [],
-				value : 0.0,
+				incoming : [], // array of referenced to gene in coming
+				layer : undefined, // index of the layer in the topological order
+				index : undefined, // global index in the top. order
+				indexInLayer : undefined, // index in the layer (use to draw)
+				outcoming : [], // referenced to gene coming out
+				value : undefined, // value taken during the evaluation
 			};
 		},
-		network = {},
-		topologicalOrder = [],
+		/* generate the network from the gene, fill incoming and outcoming arrays */
 		generateNetwork = function() {
-			//TODO with outcoming and topological order
-			//topological order is an array of layer which is an array of neuron
-			network = {};
+			network = [];
 
 			var i;
 			for (i=0; i<numberOfInputs; i++) {
-				network[i] = newNeuron();
+				network.push(newNode());
 			}
 			for (i=0; i<numberOfOuputs; i++) {
-				network[i+maxNodes] = newNeuron();
+				network.push(newNode());
 			}
-
-			genes.sort(function(a,b) {
-				return (a.out < b.out);
-			});
 			genes.forEach(function(gene) {
 				if (gene.enabled) {
 					if (network[gene.out] === undefined) {
-						network[gene.out] = newNeuron();
+						network[gene.out] = newNode();
 					}
 					network[gene.out].incoming.push(gene);
 					if (network[gene.into] === undefined) {
-						network[gene.into] = newNeuron();
+						network[gene.into] = newNode();
 					}
 					network[gene.into].outcoming.push(gene);
 				}
 			});
-
-			/* instantiate topologicalOrder */
-			//TODO
-			var L,S,n,m,i,layer,nextLayer;
-			L = [];
+		},
+		topologicalOrder = []; // referenced to node to evaluate in the right order
+		/* re-set indexs and layers of all node and also reset topologicalOrder */
+		resetTopologicalOrder = function() {
+			var L,S,n,m,i,layer,nextLayer, index, node, indexInLayer
+			L = [],
 			S = [];
-			for (i=0; i<numberOfInputs; i++) {
-				S.push(network[i]);
-			}
 
-			Object.keys(network).forEach(function(key) {
-				network[key].marked = 0;
+			network.forEach(function(node) {
+				if (node.incoming.length === 0) {
+					S.push(node);
+				}
+			});
+
+			network.forEach(function(node) {
+				node.marked = 0;
+				node.index = -1;
 			});
 
 			layer = 0;
+			index = 0;
+			indexInLayer = 0;
 			nextLayer = S.length;
 			while (S.length !== 0) {
 				n = S[0];
 				n.layer = layer;
-				console.log(layer);
+				n.index = index;
+				n.indexInLayer = indexInLayer;
 				S.splice(0,1);
 				L.push(n);
-
-				nextLayer--;
-				if (nextLayer === 0) {
-					nextLayer = S.length;
-					layer++;
-				}
 
 				n.outcoming.forEach(function(gene) {
 					m = network[gene.out];
@@ -153,49 +131,51 @@ function createGenomeConstrutor(spec) {
 						S.push(m);
 					}
 				});
+
+				index++;
+				indexInLayer++;
+				nextLayer--;
+				if (nextLayer === 0) {
+					nextLayer = S.length;
+					indexInLayer = 0;
+					layer++;
+				}
 			}
-			
+
 			Object.keys(network).forEach(function(key) {
 				delete network[key].marked;
 			});
 
 			topologicalOrder = L;
 			topologicalOrder.splice(0,numberOfInputs);
-			console.log(topologicalOrder);
 		},
+		/* take an array of inputs and return an array of outputs */
 		evaluateNetwork = function(inputs) {
 			var i, sum, neuron,outputs = [];
-			inputs.push(1);
 
 			for (i=0; i<numberOfInputs; i++) {
 				network[i].value = inputs[i];
 			}
 
-			/* the order is not guaranted */
-			/* must be change to a true graph with node
-			 * updated while mutating and an topological sort */
-			/* or just for now use an array topologicalOrder
-			 * that point on neuron in the right order */
-			/* the topological Order may not conatin inuputs */
-//			Object.keys(network).forEach(function(key) {
-//				neuron = network[key];
-			topologicalOrder.forEach(function(neuron) {
+			topologicalOrder.forEach(function(node) {
 				sum = 0;
 
-				neuron.incoming.forEach(function(gene) {
+				node.incoming.forEach(function(gene) {
 					sum += gene.weight*network[gene.into].value;
 				});
-				if (neuron.incoming.length > 0) {
-					neuron.value = sigmoid(sum);
+				if (node.incoming.length > 0) {
+					node.value = sigmoid(sum);
+				} else {
+					node.value = 0;
 				}
 			});
 
-			for (i=0; i<numberOfOuputs; i++) {
-				outputs.push(network[maxNodes+i]);
+			for (i=numberOfInputs; i<numberOfOuputs+numberOfInputs; i++) {
+				outputs.push(network[i]);
 			}
 			return outputs;
 		},
-		globalRank = 0,
+		globalRank = 0, // use by the pool
 		setGlobalRank = function(num) {
 			globalRank = num;
 		},
@@ -204,11 +184,11 @@ function createGenomeConstrutor(spec) {
 		},
 		copy = function() {
 			return createGenome({
-				genes : genes,
-				maxneuron : maxneuron,
+				genes : genes, // must be copied by constructor and not referenced
 				mutationRates : mutationRates, // must be copied by constructor and not referenced
 			});
 		},
+		/* mutate the weight of genes with randomness */
 		pointMutate = function() {
 			var step = mutationRates.stepsize;
 			genes.forEach(function(gene) {
@@ -219,77 +199,75 @@ function createGenomeConstrutor(spec) {
 				}
 			});
 		},
-		randomNeuron = function(notInput) {
-			var neuron = {}, i, o, keys, result;
-			neuron.length = numberOfInputs;
-			for (i=0; i<numberOfInputs; i++) {
-				neuron[i] = true;
+		twoRandomNode = function() {
+			/* must return two node in the right topological order
+			 * and one can be an input whereas the other cannot
+			 * also the first node cannot be an output if the second is
+			 * not one
+			 */
+			var node1,node2,tmp,
+			isAnOutput = function(n) {
+				if (n>=numberOfInputs && n<numberOfInputs+numberOfOuputs) {
+					return true;
+				} else {
+					return false;
+				}
 			}
-			for (o=0; o<numberOfOuputs; o++) {
-				neuron[o+maxNodes] = true;
-			}
-			genes.forEach(function(gene) {
-				neuron[gene.out] = true;
-				neuron[gene.into] = true;
-			});
-			keys = Object.keys(neuron);
 
-			if (notInput) {
-				do {
-					result = parseInt(keys[randomInteger(0,keys.length)],10);
-				} while (result < numberOfInputs);
-				return result;
+			while (node1 === node2
+					|| isAnOutput(node1)
+					) {
+				node1 = randomInteger(0,network.length);
+				node2 = randomInteger(numberOfInputs,network.length);
+				if (network[node1].layer > network[node2].layer) {
+					tmp = node1;
+					node1 = node2;
+					node2 = tmp;
+				}
 			}
-			return parseInt(keys[randomInteger(0,keys.length)],10);
+			return [node1, node2];
 		},
-		newGene = function() {
-			return {
-				into : 0,
-				out : 0,
-				weight : 0,
-				enabled : true,
-				innovation : 0
-			};
-		},
-		containsLink = function(link) {
+		containsLink = function(into,out) {
+			/* return if a gene already source on into and target on out */
 			var result = false;
 			genes.forEach(function(gene) {
-				if (gene.into === link.into && gene.out === link.out) {
+				if (gene.into === into && gene.out === out) {
 					result = true;
 				}
 			});
 			return result;
 		},
 		linkMutate = function(forceBias) {
-			var neuron1 = randomNeuron(false),
-			neuron2 = randomNeuron(true),
-			tmp, newLink;
+			/* create a new link between a node that can be an input
+			 * and a node that cannot be an input. also it doesn't create
+			 * a link between an output to something other than output
+			 */
+			var node1,node2,tmp,newLink;
+			tmp = twoRandomNode();
+			node1 = tmp[0];
+			node2 = tmp[1];
 
-			if ((neuron1 < numberOfInputs && neuron2 < numberOfInputs)
-				|| neuron1 === neuron2) {
+			if (containsLink(node1,node2)) {
 				return;
 			}
-			if (neuron1 > neuron2) {
-				tmp = neuron1;
-				neuron1 = neuron2;
-				neuron2 = tmp;
-			}
+
 
 			newLink = newGene();
-			newLink.into = neuron1;
-			newLink.out = neuron2;
-			if (forceBias) {
-				newLink.into = numberOfInputs - 1; // WHY ?
-			}
-			if (containsLink(newLink)) {
-				return;
-			}
+			newLink.into = node1;
+			network[node1].outcoming.push(newLink);
+			newLink.out = node2;
+			network[node2].incoming.push(newLink);
 
 			newLink.innovation = newInnovation();
 			newLink.weight = Math.random()*4 - 2;
 			genes.push(newLink);
+
+			resetTopologicalOrder();
 		},
 		nodeMutate = function() {
+			/* disable a random gene and create two genes and 
+			 * a node between its source and its target
+			 */
 			if (!genes.length) {return;}
 
 			var gene = genes[randomInteger(0,genes.length)];
@@ -298,7 +276,7 @@ function createGenomeConstrutor(spec) {
 			gene.enabled = false;
 
 			genes.push({
-				out : maxneuron,
+				out : network.length,
 				into : gene.into,
 				weight : 1.0,
 				enabled : true,
@@ -306,15 +284,19 @@ function createGenomeConstrutor(spec) {
 			});
 			genes.push({
 				out : gene.out,
-				into : maxneuron,
+				into : network.length,
 				weight : gene.weight,
 				enabled : true,
 				innovation : newInnovation()
 			});
 
-			maxneuron++;
+			generateNetwork(); // can do better
+			resetTopologicalOrder();
 		},
 		enableDisableMutate = function(enable) {
+			/* enable a gene that preserve DAG
+			 * or disable a gene
+			 */
 			var candidates = [],
 			gene;
 
@@ -325,10 +307,16 @@ function createGenomeConstrutor(spec) {
 			});
 			if (candidates.length>0) {
 				gene = candidates[randomInteger(0,candidates.length)];
-				gene.enabled = !gene.enabled;
+				if (enable) {
+					if (network[gene.into].layer < network[gene.out].layer) {
+						gene.enabled = !gene.enabled;
+					}
+				} else {
+					gene.enabled = !gene.enabled;
+				}
 			}
+			resetTopologicalOrder();
 		},
-
 		mutate = function() {
 			Object.keys(mutationRates).forEach(function(key) {
 				mutationRates[key] *= (0.95 + randomInteger(0,2)*0.10263); 
@@ -416,7 +404,7 @@ function createGenomeConstrutor(spec) {
 		disjoint = function(genomeP) {
 			var dis = 0,
 			innovp, n;
-			
+
 			genes.forEach(function(gene) {
 				if (!genomeP.hasInnovation(gene.innovation)) {
 					dis++;
@@ -452,9 +440,6 @@ function createGenomeConstrutor(spec) {
 			dw = deltaWeights*weights(genomeP);
 			return dd + dw < deltaThreshold;
 		},
-		getMaxneuron = function() {
-			return maxneuron;
-		},
 		crossover = function(genomeP) {
 			var childGenes = [],
 			geneP;
@@ -468,32 +453,35 @@ function createGenomeConstrutor(spec) {
 			});
 			return createGenome({
 				genes : genes,
-				maxneuron : Math.max(maxneuron, genomeP.getMaxneuron()),
 				mutationRates : mutationRates
 			});
 		},
 		exportSigma = function() {
+			console.log("net",network);
+			console.log("genes",genes);
 			var sig = {
 				nodes : [],
 				edges : [],
 			},
-			c;
+			c,node;
 			Object.keys(network).forEach(function(key) {
-				c = Math.floor(network[key].value*16).toString(16);
-				sig.nodes.push({
-					id : key,
-					label : topologicalOrder.indexOf(network[key]).toString(10),
-					x : network[key].layer*10,
-					y : Math.random(),
-					color : '#'+c+c+'0',
-					size : 1,
-				});
+				node = network[key];
+				if (node.index !== -1) {
+					c = Math.floor(node.value*16).toString(16);
+					sig.nodes.push({
+						id : key,
+						label : 'i'+node.index.toString()+';'+'k'+key,
+						x : node.layer*10 || -10,
+						y : node.indexInLayer*10 || -10,
+						color : '#'+c+c+'0',
+						size : 1,
+					});
+				}
 			});
 
 			genes.forEach(function(gene) {
-				if (!gene.enabled) {
-					c = '#111'
-				} else if (gene.weight>0) {
+				if (!gene.enabled) {return;}
+				if (gene.weight>0) {
 					c = '#f00';
 				} else {
 					c = '#00f';
@@ -507,59 +495,38 @@ function createGenomeConstrutor(spec) {
 					color : c
 				});
 			});
-
-//			/* topological sort */
-//			var t = {}, toDecrease = [],toDelete = [],i,n;
-//			t.buffer = sig.nodes.splice(0,numberOfInputs);
-//			t.toOrder = sig.nodes;
-//			t.ordered = [];
-//			t.edges = sig.edges;
-//
-//			var layer = 0,
-//			notNextLayer = t.buffer.length;
-//			while (t.buffer.length > 0) {
-//				n = t.buffer.splice(0,1);
-//				n.layer = layer;
-//				t.ordered.push(n);
-//
-//				if (!notNextLayer) {
-//					notNextLayer = t.buffer.length;
-//					layer++;
-//				} else {
-//					notNextLayer--;
-//				}
-//				t.edges.forEach(function(edge) {
-//					if (edge.source === n.id) {
-//						toDecrease.push(edge.target);
-//						toDelete.push(edge);
-//					}
-//				});
-//				toDelete.forEach(function(edge) {
-//					t.edges.slice(t.edges.indexOf(edge));
-//				});
-//				toDelete = [];
-//				toDecrease.forEach(function(node) {
-//					t.toOrder[t.toOrder.indexOf(node)].incoming--;
-//				});
-//				toDecrease = [];
-//				for (i=0; i<t.toOrder.length; i++) {
-//					if (t.toOrder[i].incoming.length === 0) {
-//						t.buffer.push(t.toOrder[i]);
-//						t.toOrder.splice(i,1);
-//						i--;
-//					}
-//				}
-//			}
-//
-//			sig.node = t.ordered;
-//
-//			sig.node.forEach(function(node) {
-//				node.x = node.layer*10;
-//			});
-//
 			return sig;
 		},
-		save;
+		save = function() {
+		};
+
+
+		if (spec) {
+			if (spec.genes) {
+				spec.genes.forEach(function(gene) {
+					genes.push({
+						into : gene.into,
+						out : gene.out,
+						weight : gene.weight,
+						enabled : gene.enabled,
+						innovation : gene.innovation
+					});
+				});
+			}
+			if (spec.mutationRates) {
+				mutationRates = {
+					connections : spec.mutationRates.connections,
+					link : spec.mutationRates.link,
+					node : spec.mutationRates.node,
+					enable : spec.mutationRates.enable,
+					disable : spec.mutationRates.disable,
+					bias : spec.mutationRates.bias,
+					stepSize : spec.mutationRates.stepSize
+				};
+			}
+		}
+		generateNetwork();
+		resetTopologicalOrder();
 
 		/* return object */
 		return Object.freeze({
@@ -585,57 +552,11 @@ function createGenomeConstrutor(spec) {
 			getMaxneuron : getMaxneuron,
 			getWeightOfInnovation : getWeightOfInnovation,
 
-			/* all attribute *\/
-			perturbChance : spec.perturbChance,
-			mutateConnectionsChances : spec.mutateConnectionsChances,
-			linkMutationChance : spec.linkMutationChance,
-			nodeMutationChance : spec.nodeMutationChance,
-			enableMutationChance : spec.enableMutationChance,
-			disableMutationChance : spec.disableMutationChance,
-			biasMutationChance : spec.biasMutationChance,
-			stepSize : spec.stepSize,
-			numberOfInputs : spec.numberOfInputs,
-			numberOfOuputs : spec.numberOfOuputs,
-			maxNodes : spec.maxNodes,
-			newInnovation : spec.newInnovation,
-			deltaDisjoint : spec.deltaDisjoint,
-			deltaWeights : spec.deltaWeights,
-			deltaThreshold : spec.deltaThreshold,
-
-			randomInteger : randomInteger,
-			sigmoid : sigmoid,
-			genes : genes,
-			mutationRates : mutationRates,
-			maxneuron : maxneuron,
-			fitness : fitness,
-			setFitness : setFitness,
-			getFitness : getFitness,
-			newNeuron : newNeuron,
-			network : network,
-			generateNetwork : generateNetwork,
-			evaluateNetwork : evaluateNetwork,
-			globalRank : globalRank,
-			setGlobalRank : setGlobalRank,
-			getGlobalRank : getGlobalRank,
-			copy : copy,
-			pointMutate : pointMutate,
-			randomNeuron : randomNeuron,
-			newGene : newGene,
-			containsLink : containsLink,
+			/* debug attribute */
 			linkMutate : linkMutate,
 			nodeMutate : nodeMutate,
-			enableDisableMutate : enableDisableMutate,,
+			enableDisableMutate : enableDisableMutate,
 			mutate : mutate,
-			hasInnovation : hasInnovation,
-			getInnovations : getInnovations,
-			copyInnovation : copyInnovation,
-			getWeightOfInnovation : getWeightOfInnovation,
-			disjoint : disjoint,
-			weights : weights,
-			sameSpecies : sameSpecies,
-			crossover : crossover,
-			exportSigma : exportSigma,
-			save : save,
 			/**/
 		});
 	}

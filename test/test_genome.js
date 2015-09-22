@@ -11,7 +11,7 @@ var createNewInnovation = function() {
 	linkMutationChance : 2.0,
 	nodeMutationChance : 0.50,
 	enableMutationChance : 0.2,
-	gisableMutationChance : 0.4,
+	disableMutationChance : 0.4,
 	stepSize : 0.1,
 	numberOfInputs : 3,
 	numberOfOuputs : 2,
@@ -27,12 +27,34 @@ var createNewInnovation = function() {
 	}
 });
 basic = genomeConstructor();
-basic.mutate();
-basic.mutate();
-basic.generateNetwork();
 basic.evaluateNetwork([1,1,0]);
 console.log("test constructor");
 console.log(basic.exportSigma());
+
+var linkMutate = function() {
+	basic.linkMutate();
+	basic.evaluateNetwork([1,1,0]);
+	console.log("test constructor");
+	console.log(basic.exportSigma());
+}
+var nodeMutate = function() {
+	basic.nodeMutate();
+	basic.evaluateNetwork([1,1,0]);
+	console.log("test constructor");
+	console.log(basic.exportSigma());
+}
+
+var mutate = function() {
+	basic.mutate();
+	basic.evaluateNetwork([1,1,0]);
+	console.log("test constructor");
+	console.log(basic.exportSigma());
+}
+
+for (var i=0; i<10; i++) {
+	mutate();
+}
+
 
 s = new sigma({
 	graph : basic.exportSigma(),
@@ -41,6 +63,9 @@ s = new sigma({
 		maxEdgeSize : 10
 	}
 });
+
+
+
 
 
 
