@@ -450,7 +450,7 @@ function createGenomeConstrutor(spec) {
 				}
 			});
 			return createGenome({
-				genes : genes,
+				genes : childGenes,
 				mutationRates : mutationRates
 			});
 		},
