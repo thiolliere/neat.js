@@ -2,7 +2,7 @@
 
 javascript implementation of NEAT algorithm.
 
-it is a work in progress
+it is a work in progress, it doesn't work yet
 
 # What is NEAT
 
