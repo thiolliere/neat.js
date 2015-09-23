@@ -4,13 +4,13 @@ javascript implementation of NEAT algorithm.
 
 it is a work in progress
 
-# what is NEAT
+# What is NEAT
 
 NeuroEvolution of Augmenting Topologies (NEAT) is a genetic 
 algorithm for the generation of evolving artificial neural 
 networks developed by Ken Stanley in 2002
 
-an example of use is [MarI/O](https://www.youtube.com/results?search_query=marI%2FO&page=&utm_source=opensearch).
+an example of use is [MarI/O](https://www.youtube.com/results?search_query=marI%2FO&page=&utm_source=opensearch). (it uses an other library)
 
 ### artificial neural network
 
@@ -41,7 +41,7 @@ of the basic.
   * it kill bad networks and creates a new generation 
 of networks by mutating the best ones
 
-# how use it
+# How use it
 
 neat.js file have a the constructor (createNeat) to 
 create a neat object.
@@ -94,7 +94,7 @@ even if the new evaluation is in average higher than the older,
 some networks aren't wasted because the were evaluating by the
 older.
 
-# how it works 
+# How it works 
 
 the implementation is divided in three parts :
 
