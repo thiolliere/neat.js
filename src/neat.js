@@ -19,7 +19,6 @@ function createNeat(spec) {
 	numberOfInputs = spec.numberOfInputs, // assert exist
 	numberOfOuputs = spec.numberOfOuputs, // assert exist
 
-	maxNodes = spec.maxNodes || 1000000,
 	display = {
 		line : spec.display.line || numberOfInputs,
 		column : spec.display.column || 1,
@@ -54,7 +53,6 @@ function createNeat(spec) {
 		numberOfInputs : numberOfInputs,
 		numberOfOuputs : numberOfOuputs,
 
-		maxNodes : maxNodes,
 		display : display,
 	}),
 	compute =function(inputs) {
