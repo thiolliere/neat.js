@@ -30,7 +30,7 @@ function createNeat(spec) {
 			line : spec.display.line,
 			column : spec.display.column,
 			bps : spec.display.bps,
-		},
+		};
 	}
 
 	var pool = createPool({
@@ -57,23 +57,23 @@ function createNeat(spec) {
 		maxNodes : maxNodes,
 		display : display,
 	}),
-	function compute(inputs) {
-		return pool.evaluateCurrentGenome();
+	compute =function(inputs) {
+		return pool.evaluateCurrentGenome(inputs);
 	},
-	function setFitness(fitness) {
+	setFitness = function(fitness) {
 		pool.setFitnessOfCurrentGenome(fitness);
 	},
-	function getFitess() {
+	getFitness = function() {
 		pool.getFitnessOfCurrentGenome();
 	},
-	function addFitness(fitness) {
+	addFitness = function(fitness) {
 		pool.setFitnessOfCurrentGenome(pool.getFitnessOfCurrentGenome()+fitness);
 	},
-	function evolve() {
+	evolve = function() {
 		pool.setCurrentGenomeNextOne();
 	},
-	function changeFitnessEvaluation() {
-		resetAllFitness();
+	changeFitnessEvaluation = function() {
+		pool.resetAllFitness();
 		pool.setCurrentGenomeFirstOne();
 	};
 
@@ -85,4 +85,4 @@ function createNeat(spec) {
 		evolve : evolve,
 		changeFitnessEvaluation : changeFitnessEvaluation,
 	});
-};
+}

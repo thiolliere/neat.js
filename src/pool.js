@@ -214,6 +214,18 @@ function createPool(spec) {
 		});
 		species = survived;
 	},
+	resetAllFitness = function() {
+		/* reset to  the fitness of all species 
+		 * use when changing the fitness evaluation 
+		 * for exaple */
+		species.forEach(function (specie) {
+			specie.forEach(function (genome) {
+				genome.setFitness(0);
+			});
+			specie.topFitness = 0;
+			maxFitness = 0;
+		});
+	},
 	generation = 0,
 	newGeneration = function() {
 		/* create a new generation of genome  */
@@ -284,18 +296,6 @@ function createPool(spec) {
 		 * current genome */
 		return species[currentSpecies][currentGenome].exportSigma();
 	},
-	resetAllFitness = function() {
-		/* reset to  the fitness of all species 
-		 * use when changing the fitness evaluation 
-		 * for exaple */
-		species.forEach(function (specie) {
-			specie.forEach(function (genome) {
-				genome.setFitness(0);
-			});
-			specie.topFitness = 0;
-			maxfitness = 0;
-		});
-	},
 	save = function() {
 		/* save the pool */
 	},
@@ -308,7 +308,7 @@ function createPool(spec) {
 
 	/* return the pool object */
 	return Object.freeze({
-		/* main method */
+		/* public method */
 		save : save,
 		evaluateCurrentGenome : evaluateCurrentGenome,
 		setFitnessOfCurrentGenome : setFitnessOfCurrentGenome,
@@ -317,9 +317,6 @@ function createPool(spec) {
 		getFitnessOfCurrentGenome : getFitnessOfCurrentGenome,
 		getGeneration : getGeneration,
 		exportSigmaCurrent : exportSigmaCurrent,
-		resetAllFitness : resetFitness,
-
-		/* private attributes *\/
-		/**/
+		resetAllFitness : resetAllFitness,
 	});
 }

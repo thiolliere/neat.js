@@ -565,12 +565,6 @@ function createGenomeConstrutor(spec) {
 			getInnovations : getInnovations,
 			copyInnovation : copyInnovation,
 			getWeightOfInnovation : getWeightOfInnovation,
-
-			/* debug method *\/
-			linkMutate : linkMutate,
-			nodeMutate : nodeMutate,
-			enableDisableMutate : enableDisableMutate,
-			/**/
 		});
 	}
 	return createGenome;
