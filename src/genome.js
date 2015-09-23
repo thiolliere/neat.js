@@ -9,7 +9,6 @@ function createGenomeConstrutor(spec) {
 	stepSize = spec.stepSize,
 	numberOfInputs = spec.numberOfInputs,
 	numberOfOuputs = spec.numberOfOuputs,
-	//	maxNodes = spec.maxNodes,
 	newInnovation = spec.newInnovation,
 	deltaDisjoint = spec.deltaDisjoint,
 	deltaWeights = spec.deltaWeights,
@@ -188,8 +187,8 @@ function createGenomeConstrutor(spec) {
 				mutationRates : mutationRates, // must be copied by constructor and not referenced
 			});
 		},
-		/* mutate the weight of genes with randomness */
 		pointMutate = function() {
+			/* mutate the weight of genes with randomness */
 			var step = mutationRates.stepsize;
 			genes.forEach(function(gene) {
 				if (Math.random() < perturbChance) {
@@ -199,7 +198,7 @@ function createGenomeConstrutor(spec) {
 				}
 			});
 		},
-		twoRandomNode = function() {
+		choseNodes = function() {
 			/* must return two node in the right topological order
 			 * and one can be an input whereas the other cannot
 			 * also the first node cannot be an output if the second is
@@ -241,7 +240,7 @@ function createGenomeConstrutor(spec) {
 			 * a link between an output to something other than output
 			 */
 			var node1,node2,tmp,newLink;
-			tmp = twoRandomNode();
+			tmp = choseNodes();
 			node1 = tmp[0];
 			node2 = tmp[1];
 
@@ -316,6 +315,7 @@ function createGenomeConstrutor(spec) {
 			resetTopologicalOrder();
 		},
 		mutate = function() {
+			/* mutate the genome according mutation rates */
 			Object.keys(mutationRates).forEach(function(key) {
 				mutationRates[key] *= (0.95 + randomInteger(0,2)*0.10263); 
 			});
@@ -360,6 +360,7 @@ function createGenomeConstrutor(spec) {
 			}
 		},
 		hasInnovation = function(innovation) {
+			/* return whereas the innovation is present */
 			var result = false;
 			genes.forEach(function(gene) {
 				if (gene.innovation === innovation) {
@@ -369,6 +370,7 @@ function createGenomeConstrutor(spec) {
 			return result;
 		}, 
 		getInnovations = function() {
+			/* return an array containing all innovations */
 			var array = [];
 			genes.forEach(function(gene) {
 				array.push(gene.innovation);
@@ -376,6 +378,7 @@ function createGenomeConstrutor(spec) {
 			return array;
 		},
 		copyInnovation = function(innovation) {
+			/* copy the gene of a given innovation */
 			var result;
 			genes.forEach(function(gene) {
 				if (gene.innovation === innovation) {
@@ -391,6 +394,7 @@ function createGenomeConstrutor(spec) {
 			return result;
 		},
 		getWeightOfInnovation = function(innovation) {
+			/* return the weight of the gene of a given innovation */
 			var result;
 			genes.forEach(function(gene) {
 				if (gene.innovation === innovation) {
@@ -400,6 +404,8 @@ function createGenomeConstrutor(spec) {
 			return result;
 		},
 		disjoint = function(genomeP) {
+			/* compute the difference of innovations between
+			 * this and another genome */
 			var dis = 0,
 			innovp, n;
 
@@ -420,6 +426,8 @@ function createGenomeConstrutor(spec) {
 			return dis/n;
 		},
 		weights = function(genomeP) {
+			/* compute the average difference of weight between gene 
+			 * of same innovation with an other genome */
 			var sum = 0,
 			coincident = 0,
 			weight;
@@ -434,11 +442,15 @@ function createGenomeConstrutor(spec) {
 			return sum / coincident;
 		},
 		sameSpecies = function(genomeP) {
+			/* return if the other genome is considerate the same
+			 * species as the present, considering delta specifications */
 			var dd = deltaDisjoint*disjoint(genomeP),
 			dw = deltaWeights*weights(genomeP);
 			return dd + dw < deltaThreshold;
 		},
 		crossover = function(genomeP) {
+			/* breed a new genome result of both the other genome
+			 * and this. */
 			var childGenes = [],
 			geneP;
 			genes.forEach(function(gene) {
@@ -455,6 +467,7 @@ function createGenomeConstrutor(spec) {
 			});
 		},
 		exportSigma = function() {
+			/* export network and genes into an graph renderable by sigma */
 			console.log("net",network);
 			console.log("genes",genes);
 			var sig = {
@@ -496,9 +509,11 @@ function createGenomeConstrutor(spec) {
 			return sig;
 		},
 		save = function() {
+			/* save the genome */
 		};
 
 
+		/* parse specifications */
 		if (spec) {
 			if (spec.genes) {
 				spec.genes.forEach(function(gene) {
@@ -523,6 +538,8 @@ function createGenomeConstrutor(spec) {
 				};
 			}
 		}
+
+		/* generate network and topological order */
 		generateNetwork();
 		resetTopologicalOrder();
 
@@ -549,7 +566,7 @@ function createGenomeConstrutor(spec) {
 			copyInnovation : copyInnovation,
 			getWeightOfInnovation : getWeightOfInnovation,
 
-			/* debug attribute */
+			/* debug method *\/
 			linkMutate : linkMutate,
 			nodeMutate : nodeMutate,
 			enableDisableMutate : enableDisableMutate,
