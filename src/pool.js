@@ -24,7 +24,7 @@ function createPool(spec) {
 		column : spec.display.column,
 		bps : spec.display.bps
 	},
-	/* others */
+	/* var for pool */
 	crossoverChance = spec.crossoverChance,
 	staleSpecies = spec.staleSpecies,
 	population = spec.population, // assert > 0
@@ -52,21 +52,24 @@ function createPool(spec) {
 		deltaThreshold : deltaThreshold,
 		display : display
 	}),
-	species = [],
-	maxFitness,
+	species = [], // array of species
+	maxFitness, // the max fitness of all genome
 	newSpecies = function() {
-		var topFitness = 0,
-		staleness = 0,
-		genomes = [],
-		averageFitness = 0,
-		calculateAverageFitness = function() {
+		var topFitness = 0, // the max fitness of genomes in the species
+		staleness = 0, // ??!
+		genomes = [], // array of genome
+		averageRank = 0, // average of fitness in the species
+		computeAverageRank = function() {
+			/* compute average fitness */
 			var total = 0;
 			genomes.forEach(function(genome) {
 				total += genome.getGlobalRank();
 			});
-			averageFitness = total / genomes.length;
+			averageRank = total / genomes.length;
 		},
 		breedChild = function() {
+			/* crossover two genome in the species and 
+			 * return the new genome */
 			var child, g, gP;
 			g = genomes[randomInteger(0,genomes.length)];
 			if (Math.random() < crossoverChance) {
@@ -90,12 +93,14 @@ function createPool(spec) {
 			topFitness : topFitness,
 			staleness : staleness,
 			genomes : genomes,
-			averageFitness : averageFitness,
-			calculateAverageFitness : calculateAverageFitness,
+			averageRank : averageRank,
+			computeAverageRank : computeAverageRank,
 			breedChild : breedChild
 		});
 	},
 	addToSpecies = function(child) {
+		/* add a genome in the population by placing it
+		 * in the right species or create a new one */
 		var inSpecies = false,
 		childSpecies;
 
@@ -110,13 +115,14 @@ function createPool(spec) {
 			species.push(childSpecies);
 		}
 	},
-	currentSpecies = 0,
-	currentGenome = 0,
+	currentSpecies = 0, // index of the species in use
+	currentGenome = 0, // index of the genome in use in its species
 	evaluateCurrentGenome = function(inputs) {
-		// the network must have been generated
+		/* evaluate the network of the current genome given inputs */
 		species[currentSpecies][currentGenome].evaluateNetwork(inputs);
 	},
 	setFitnessOfCurrentGenome = function(fitness) {
+		/* set the fitness of the current genome */
 		var specie = species[currentSpecies];
 		specie[currentGenome].setFitness(fitness);
 		if (fitness > specie.topFitness) {
@@ -127,6 +133,8 @@ function createPool(spec) {
 		}
 	},
 	cullSpecies = function(cutToOne) {
+		/* cut half of the species or all but one genome 
+		 * of the species */
 		var remaining;
 		species.forEach(function(specie) {
 			specie.genomes.sort(function(a,b) {
@@ -142,6 +150,7 @@ function createPool(spec) {
 		});
 	},
 	rankGlobally = function() {
+		/* rank each genome globally */
 		var global = [],
 		count;
 
@@ -162,6 +171,9 @@ function createPool(spec) {
 		});
 	},
 	removeStaleSpecies = function() {
+		/* remove species that doesn't evolve enough considering
+		 * staleSpecies integer 
+		 * but keep species that have the maxFitness */
 		var survived = [];
 		species.forEach(function (species) {
 			species.genomes.sort(function (a,b) {
@@ -181,20 +193,22 @@ function createPool(spec) {
 
 		species = survived;
 	},
-	totalAverageFitness = function() {
+	totalAverageRank = function() {
+		/* return the average of all species average rank */
 		var total = 0;
 		species.forEach(function(species) {
-			total += species.averageFitness;
+			total += species.averageRank;
 		});
-		return total;
+		return total / species.length;
 	},
 	removeWeakSpecies = function() {
+		/* remove species that averageRank under total average fitness */
 		var breed,
 		survived = [],
-		sum = totalAverageFitness();
+		avg = totalAverageRank();
 		species.forEach(function(species) {
-			breed = Math.floor(species.averageFitness / sum * population);
-			if (breed >= 1) {
+			breed = species.averageRank - avg;
+			if (breed >= 0) {
 				survived.push(species);
 			}
 		});
@@ -202,21 +216,22 @@ function createPool(spec) {
 	},
 	generation = 0,
 	newGeneration = function() {
-		var sum,children,randomSpecies,breed,i;
+		/* create a new generation of genome  */
+		var avg,children,randomSpecies,breed,i;
 
 		cullSpecies(false);
-		rankGlobally();
 		removeStaleSpecies();
+
 		rankGlobally();
 		species.forEach(function(specie) {
-			specie.calculateAverageFitness();
+			specie.computeAverageRank();
 		});
 		removeWeakSpecies();
 
-		sum = totalAverageFitness();
+		avg = totalAverageRank();
 		children = [];
 		species.forEach(function(specie) {
-			breed = Math.floor(specie.averageFitness / sum * population) -1;
+			breed = Math.floor(specie.averageRank / avg) -1;
 			for (i=0; i<breed; i++) {
 				children.push(specie.breedChild());
 			}
@@ -230,16 +245,13 @@ function createPool(spec) {
 			addToSpecies(child);
 		});
 
-		species.forEach(function(specie) {
-			specie.genomes.forEach(function(genome) {
-				genome.generateNetwork();
-			});
-		});
-
 		resetAllFitness();
 		generation++;
 	},
 	setCurrentGenomeNextOne = function() {
+		/* set the current genome the next one 
+		 * and create a new generation of genome 
+		 * if no next */
 		if (currentGenome < (species[currentSpecies].length-1)) {
 			currentGenome++;
 		} else if (currentSpecies < (species[currentSpecies].length-1)) {
@@ -252,31 +264,49 @@ function createPool(spec) {
 		}
 	},
 	setCurrentGenomeFirstOne = function() {
+		/* set the current genome the first genome 
+		 * of the first species
+		 * use when changing the fitness evaluation 
+		 * for example */
 		currentGenome = 0;
 		currentSpecies = 0;
 	},
 	getGeneration = function() {
+		/* return the number of the generation */
 		return generation;
 	},
 	getFitnessOfCurrentGenome = function() {
+		/* return the fitness of the current genome */
 		return species[currentSpecies][currentGenome].getFitness();
 	},
 	exportSigmaCurrent = function() {
+		/* export in a sigma's graph the network of the
+		 * current genome */
 		return species[currentSpecies][currentGenome].exportSigma();
 	},
 	resetAllFitness = function() {
+		/* reset to  the fitness of all species 
+		 * use when changing the fitness evaluation 
+		 * for exaple */
 		species.forEach(function (specie) {
 			specie.forEach(function (genome) {
 				genome.setFitness(0);
 			});
+			specie.topFitness = 0;
+			maxfitness = 0;
 		});
 	},
-	save,
+	save = function() {
+		/* save the pool */
+	},
 	i;
 
+	/* initialize the population */
 	for (i=0; i<population; i++) {
 		addToSpecies(createGenome());
 	}
+
+	/* return the pool object */
 	return Object.freeze({
 		/* main method */
 		save : save,
@@ -289,7 +319,7 @@ function createPool(spec) {
 		exportSigmaCurrent : exportSigmaCurrent,
 		resetAllFitness : resetFitness,
 
-		/* private attributes */
+		/* private attributes *\/
 		/**/
 	});
 }
