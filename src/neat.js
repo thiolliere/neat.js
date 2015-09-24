@@ -1,5 +1,8 @@
+//require('./pool.js');
+
 function createNeat(spec) {
-	var population = spec.population || 300, // assert > 0
+	var spec = spec || {},
+	population = spec.population || 300, // assert > 0
 	deltaDisjoint = spec.deltaDisjoint || 2.0,
 	deltaWeights = spec.deltaWeights || 0.4,
 	deltaThreshold = spec.deltaThreshold || 1.0,
@@ -19,20 +22,20 @@ function createNeat(spec) {
 	numberOfInputs = spec.numberOfInputs, // assert exist
 	numberOfOuputs = spec.numberOfOuputs, // assert exist
 
-	display = {
-		line : spec.display.line || numberOfInputs,
-		column : spec.display.column || 1,
-		bps : spec.display.bps || 1,
-	};
-	if (spec.display) {
-		display = {
-			line : spec.display.line,
-			column : spec.display.column,
-			bps : spec.display.bps,
-		};
-	}
+//	display = {
+//		line : spec.display.line || numberOfInputs,
+//		column : spec.display.column || 1,
+//		bps : spec.display.bps || 1,
+//	};
+//	if (spec.display) {
+//		display = {
+//			line : spec.display.line,
+//			column : spec.display.column,
+//			bps : spec.display.bps,
+//		};
+//	}
 
-	var pool = createPool({
+	pool	= createPool({
 		population : population,
 		deltaDisjoint : deltaDisjoint,
 		deltaWeights : deltaWeights,
@@ -53,7 +56,7 @@ function createNeat(spec) {
 		numberOfInputs : numberOfInputs,
 		numberOfOuputs : numberOfOuputs,
 
-		display : display,
+//		display : display,
 	}),
 	compute =function(inputs) {
 		return pool.evaluateCurrentGenome(inputs);

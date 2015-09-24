@@ -12,12 +12,12 @@ function createGenomeConstrutor(spec) {
 	newInnovation = spec.newInnovation,
 	deltaDisjoint = spec.deltaDisjoint,
 	deltaWeights = spec.deltaWeights,
-	deltaThreshold = spec.deltaThreshold,
-	display = {
-		line : spec.display.line,
-		column : spec.display.column,
-		bps : spec.display.bps,
-	};
+	deltaThreshold = spec.deltaThreshold;
+//	display = {
+//		line : spec.display.line,
+//		column : spec.display.column,
+//		bps : spec.display.bps,
+//	};
 
 	// Returns a random integer between min (included) and max (excluded)
 	// Using Math.round() will give you a non-uniform distribution!
@@ -170,7 +170,7 @@ function createGenomeConstrutor(spec) {
 			});
 
 			for (i=numberOfInputs; i<numberOfOuputs+numberOfInputs; i++) {
-				outputs.push(network[i]);
+				outputs.push(network[i].value);
 			}
 			return outputs;
 		},

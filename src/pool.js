@@ -1,3 +1,5 @@
+//require('./genome.js');
+
 function createPool(spec) {
 	/* var for genome */
 	var perturbChance = spec.perturbChance,
@@ -19,11 +21,11 @@ function createPool(spec) {
 		innovation++;
 		return innovation;
 	},
-	display = {
-		line : spec.display.line,
-		column : spec.display.column,
-		bps : spec.display.bps
-	},
+//	display = {
+//		line : spec.display.line,
+//		column : spec.display.column,
+//		bps : spec.display.bps
+//	},
 	/* var for pool */
 	crossoverChance = spec.crossoverChance,
 	staleSpecies = spec.staleSpecies,
@@ -34,7 +36,7 @@ function createPool(spec) {
 	randomInteger = function(min, max) {
 		return Math.floor(Math.random() * (max - min)) + min;
 	},
-	createGenome = createGenomeConstructor({
+	createGenome = createGenomeConstrutor({
 		perturbChance : perturbChance,
 		mutateConnectionsChances : mutateConnectionsChances,
 		linkMutationChance : linkMutationChance,
@@ -50,7 +52,7 @@ function createPool(spec) {
 		deltaDisjoint : deltaDisjoint,
 		deltaWeights : deltaWeights,
 		deltaThreshold : deltaThreshold,
-		display : display
+//		display : display
 	}),
 	species = [], // array of species
 	maxFitness, // the max fitness of all genome
@@ -107,6 +109,7 @@ function createPool(spec) {
 		species.forEach(function(specie) {
 			if (!inSpecies && child.sameSpecies(specie.genomes[0])) {
 				specie.genomes.push(child);
+				inSpecies = true;
 			}
 		});
 		if (!inSpecies) {
@@ -119,12 +122,12 @@ function createPool(spec) {
 	currentGenome = 0, // index of the genome in use in its species
 	evaluateCurrentGenome = function(inputs) {
 		/* evaluate the network of the current genome given inputs */
-		species[currentSpecies][currentGenome].evaluateNetwork(inputs);
+		return species[currentSpecies].genomes[currentGenome].evaluateNetwork(inputs);
 	},
 	setFitnessOfCurrentGenome = function(fitness) {
 		/* set the fitness of the current genome */
 		var specie = species[currentSpecies];
-		specie[currentGenome].setFitness(fitness);
+		specie.genomes[currentGenome].setFitness(fitness);
 		if (fitness > specie.topFitness) {
 			specie.topFitness = fitness;
 			if (fitness > maxFitness) {
@@ -144,7 +147,7 @@ function createPool(spec) {
 			if (cutToOne) {
 				remaining = 1;
 			}
-			while (species.genomes.length > remaining) {
+			while (specie.genomes.length > remaining) {
 				specie.genomes.pop();
 			}
 		});
@@ -155,7 +158,7 @@ function createPool(spec) {
 		count;
 
 		species.forEach(function(species) {
-			species.genomes.forEarch(function(genome) {
+			species.genomes.forEach(function(genome) {
 				global.push(genome);
 			});
 		});
@@ -219,7 +222,7 @@ function createPool(spec) {
 		 * use when changing the fitness evaluation 
 		 * for exaple */
 		species.forEach(function (specie) {
-			specie.forEach(function (genome) {
+			specie.genomes.forEach(function (genome) {
 				genome.setFitness(0);
 			});
 			specie.topFitness = 0;
@@ -289,12 +292,12 @@ function createPool(spec) {
 	},
 	getFitnessOfCurrentGenome = function() {
 		/* return the fitness of the current genome */
-		return species[currentSpecies][currentGenome].getFitness();
+		return species[currentSpecies].genomes[currentGenome].getFitness();
 	},
 	exportSigmaCurrent = function() {
 		/* export in a sigma's graph the network of the
 		 * current genome */
-		return species[currentSpecies][currentGenome].exportSigma();
+		return species[currentSpecies].genomes[currentGenome].exportSigma();
 	},
 	save = function() {
 		/* save the pool */
