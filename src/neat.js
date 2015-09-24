@@ -76,6 +76,9 @@ function createNeat(spec) {
 	changeFitnessEvaluation = function() {
 		pool.resetAllFitness();
 		pool.setCurrentGenomeFirstOne();
+	},
+	getSigmaNetwork = function() {
+		return pool.exportSigmaCurrent();
 	};
 
 	return Object.freeze({
@@ -85,5 +88,6 @@ function createNeat(spec) {
 		addFitness : addFitness,
 		evolve : evolve,
 		changeFitnessEvaluation : changeFitnessEvaluation,
+		getSigmaNetwork : getSigmaNetwork,
 	});
 }
