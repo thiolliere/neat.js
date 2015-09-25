@@ -3,15 +3,16 @@
 function createNeat(spec) {
 	var spec = spec || {},
 	population = spec.population || 300, // assert > 0
+
 	deltaDisjoint = spec.deltaDisjoint || 2.0,
 	deltaWeights = spec.deltaWeights || 0.4,
 	deltaThreshold = spec.deltaThreshold || 1.0,
 
 	staleSpecies = spec.staleSpecies || 15,
+	crossoverChance = spec.crossoverChance || 0.75,
 
 	mutateConnectionsChances = spec.mutateConnectionsChances || 0.25,
 	perturbChance = spec.perturbChance || 0.90,
-	crossoverChance = spec.crossoverChance || 0.75,
 	linkMutationChance = spec.linkMutationChance || 2.0,
 	nodeMutationChance = spec.nodeMutationChance || 0.50,
 	biasMutationChance = spec.biasMutationChance || 0.40,
@@ -65,7 +66,7 @@ function createNeat(spec) {
 		pool.setFitnessOfCurrentGenome(fitness);
 	},
 	getFitness = function() {
-		pool.getFitnessOfCurrentGenome();
+		return pool.getFitnessOfCurrentGenome();
 	},
 	addFitness = function(fitness) {
 		pool.setFitnessOfCurrentGenome(pool.getFitnessOfCurrentGenome()+fitness);
@@ -89,5 +90,8 @@ function createNeat(spec) {
 		evolve : evolve,
 		changeFitnessEvaluation : changeFitnessEvaluation,
 		getSigmaNetwork : getSigmaNetwork,
+		/*TODO
+		 * bestCompute
+		 */
 	});
 }

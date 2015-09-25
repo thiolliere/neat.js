@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>NEAT example</title>
+		<style type="text/css">
+#text_div {
+	margin : 3%;
+}
+#performance_graph {
+	margin : 3%;
+	top: 30%;
+	bottom: 10%;
+	left: 0;
+	right: 50%;
+	position: absolute;
+}
+#network_graph {
+	margin : 3%;
+	top: 30%;
+	bottom: 10%;
+	left: 50%;
+	right: 0;
+	position: absolute;
+}
+		</style>
+		<script src="deps/sigma.min.js"></script>
+		<script src="src/genome.js"></script>
+		<script src="src/pool.js"></script>
+		<script src="src/neat.js"></script>
+		<!--script src="neat.min.js"></script-->
+	</head>
+	<body>
+		<div id="text_div">
+			<p id="text_information">loading</p>
+		</div>
+		<div id="performance_graph"> 
+			<p> perf </p> 
+		</div>
+		<div id="network_graph"> 
+			<p> net </p> 
+		</div>
+		<script src="./example.js"></script>
+	</body>
+</html>

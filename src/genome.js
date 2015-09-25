@@ -468,8 +468,8 @@ function createGenomeConstrutor(spec) {
 		},
 		exportSigma = function() {
 			/* export network and genes into an graph renderable by sigma */
-			console.log("net",network);
-			console.log("genes",genes);
+			//console.log("net",network);
+			//console.log("genes",genes);
 			var sig = {
 				nodes : [],
 				edges : [],
@@ -478,7 +478,7 @@ function createGenomeConstrutor(spec) {
 			Object.keys(network).forEach(function(key) {
 				node = network[key];
 				if (node.index !== -1) {
-					c = Math.floor(node.value*16).toString(16);
+					c = 'c'//Math.floor((node.value||0.9)*16).toString(16);
 					sig.nodes.push({
 						id : key,
 						label : 'i'+node.index.toString()+';'+'k'+key,
@@ -554,7 +554,6 @@ function createGenomeConstrutor(spec) {
 			getGlobalRank : getGlobalRank,
 			setGlobalRank : setGlobalRank,
 			evaluateNetwork : evaluateNetwork,
-			generateNetwork : generateNetwork,
 			copy : copy,
 			sameSpecies : sameSpecies,
 			crossover : crossover,

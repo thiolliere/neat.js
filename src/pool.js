@@ -12,7 +12,6 @@ function createPool(spec) {
 	stepSize = spec.stepSize,
 	numberOfInputs = spec.numberOfInputs,
 	numberOfOuputs = spec.numberOfOuputs,
-	maxNodes = spec.maxNodes,
 	deltaDisjoint = spec.deltaDisjoint,
 	deltaWeights = spec.deltaWeights,
 	deltaThreshold = spec.deltaThreshold,
@@ -21,11 +20,11 @@ function createPool(spec) {
 		innovation++;
 		return innovation;
 	},
-//	display = {
-//		line : spec.display.line,
-//		column : spec.display.column,
-//		bps : spec.display.bps
-//	},
+	//	display = {
+	//		line : spec.display.line,
+	//		column : spec.display.column,
+	//		bps : spec.display.bps
+	//	},
 	/* var for pool */
 	crossoverChance = spec.crossoverChance,
 	staleSpecies = spec.staleSpecies,
@@ -52,7 +51,7 @@ function createPool(spec) {
 		deltaDisjoint : deltaDisjoint,
 		deltaWeights : deltaWeights,
 		deltaThreshold : deltaThreshold,
-//		display : display
+		//		display : display
 	}),
 	species = [], // array of species
 	maxFitness, // the max fitness of all genome
@@ -62,7 +61,7 @@ function createPool(spec) {
 		genomes = [], // array of genome
 		averageRank = 0, // average of fitness in the species
 		computeAverageRank = function() {
-			/* compute average fitness */
+			/* compute average rank of the species*/
 			var total = 0;
 			genomes.forEach(function(genome) {
 				total += genome.getGlobalRank();
@@ -141,7 +140,7 @@ function createPool(spec) {
 		var remaining;
 		species.forEach(function(specie) {
 			specie.genomes.sort(function(a,b) {
-				return (a.getFitness() > b.getFitness);
+				return (a.getFitness() < b.getFitness);
 			});
 			remaining = Math.ceil(specie.genomes.length/2);
 			if (cutToOne) {
@@ -180,7 +179,7 @@ function createPool(spec) {
 		var survived = [];
 		species.forEach(function (species) {
 			species.genomes.sort(function (a,b) {
-				return (a.getFitness() > b.getFitness);
+				return (a.getFitness() < b.getFitness);
 			});
 			if (species.genomes[0].getFitness() > species.topFitness) {
 				species.topFitness = species.genomes[0].getFitness();
@@ -198,6 +197,7 @@ function createPool(spec) {
 	},
 	totalAverageRank = function() {
 		/* return the average of all species average rank */
+		/* seems very useless */
 		var total = 0;
 		species.forEach(function(species) {
 			total += species.averageRank;
@@ -205,13 +205,13 @@ function createPool(spec) {
 		return total / species.length;
 	},
 	removeWeakSpecies = function() {
-		/* remove species that averageRank under total average fitness */
+		/* remove species that averageRank above average of species average rank*/
 		var breed,
 		survived = [],
 		avg = totalAverageRank();
 		species.forEach(function(species) {
 			breed = species.averageRank - avg;
-			if (breed >= 0) {
+			if (breed < 0) {
 				survived.push(species);
 			}
 		});
@@ -226,8 +226,8 @@ function createPool(spec) {
 				genome.setFitness(0);
 			});
 			specie.topFitness = 0;
-			maxFitness = 0;
 		});
+		maxFitness = 0;
 	},
 	generation = 0,
 	newGeneration = function() {
@@ -246,7 +246,7 @@ function createPool(spec) {
 		avg = totalAverageRank();
 		children = [];
 		species.forEach(function(specie) {
-			breed = Math.floor(specie.averageRank / avg) -1;
+			breed = Math.floor(avg / specie.averageRank)-1;
 			for (i=0; i<breed; i++) {
 				children.push(specie.breedChild());
 			}
@@ -260,7 +260,13 @@ function createPool(spec) {
 			addToSpecies(child);
 		});
 
-		resetAllFitness();
+		species.forEach(function (specie) {
+			specie.genomes.forEach(function (genome) {
+				genome.setFitness(0);
+			});
+			specie.topFitness = 0;
+		});
+
 		generation++;
 	},
 	setCurrentGenomeNextOne = function() {
@@ -321,5 +327,17 @@ function createPool(spec) {
 		getGeneration : getGeneration,
 		exportSigmaCurrent : exportSigmaCurrent,
 		resetAllFitness : resetAllFitness,
+
+		/* debug */
+		addToSpecies : addToSpecies,
+		cullSpecies : cullSpecies,
+		rankGlobally : rankGlobally,
+		removeStaleSpecies : removeStaleSpecies,
+		totalAverageRank : totalAverageRank,
+		removeWeakSpecies : removeWeakSpecies,
+		resetAllFitness : resetAllFitness,
+		newGeneration : newGeneration,
+		/* end debug */
+
 	});
 }
