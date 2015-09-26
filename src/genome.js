@@ -422,7 +422,7 @@ function createGenomeConstrutor(spec) {
 				}
 			});
 
-			n = innovp.length + genes.length;
+			n = innovp.length + genes.length || 1;
 			return dis/n;
 		},
 		weights = function(genomeP) {
@@ -439,7 +439,11 @@ function createGenomeConstrutor(spec) {
 				}
 			});
 
-			return sum / coincident;
+			if (coincident === 0) {
+				return 0
+			} else {
+				return sum / coincident;
+			}
 		},
 		sameSpecies = function(genomeP) {
 			/* return if the other genome is considerate the same
@@ -564,6 +568,13 @@ function createGenomeConstrutor(spec) {
 			getInnovations : getInnovations,
 			copyInnovation : copyInnovation,
 			getWeightOfInnovation : getWeightOfInnovation,
+
+			/* debug */
+			genes : genes,
+			network : network,
+			globalRank : globalRank,
+			fitness : fitness,
+			/* end debug */
 		});
 	}
 	return createGenome;

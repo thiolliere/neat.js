@@ -46,7 +46,6 @@ function createPool(spec) {
 		stepSize : stepSize,
 		numberOfInputs : numberOfInputs,
 		numberOfOuputs : numberOfOuputs,
-		maxNodes : maxNodes,
 		newInnovation : newInnovation,
 		deltaDisjoint : deltaDisjoint,
 		deltaWeights : deltaWeights,
@@ -56,21 +55,23 @@ function createPool(spec) {
 	species = [], // array of species
 	maxFitness, // the max fitness of all genome
 	newSpecies = function() {
-		var topFitness = 0, // the max fitness of genomes in the species
-		staleness = 0, // ??!
+		var topFitness = -Infinity, // the max fitness of genomes in the species
+		newTopFitness = false, // whether the species get a new top fitness 
+		staleness = 0, // how many time the species didn't get a new top fitness
 		genomes = [], // array of genome
-		averageRank = 0, // average of fitness in the species
-		computeAverageRank = function() {
+		getAverageRank = function() {
 			/* compute average rank of the species*/
 			var total = 0;
 			genomes.forEach(function(genome) {
 				total += genome.getGlobalRank();
 			});
-			averageRank = total / genomes.length;
+			return total / genomes.length;
 		},
 		breedChild = function() {
 			/* crossover two genome in the species and 
-			 * return the new genome */
+			 * return the new genome
+			 * ? must we crossover the best of the species ?
+			 */
 			var child, g, gP;
 			g = genomes[randomInteger(0,genomes.length)];
 			if (Math.random() < crossoverChance) {
@@ -90,12 +91,12 @@ function createPool(spec) {
 			return child;
 		};
 
-		return Object.freeze({
+		return Object({
 			topFitness : topFitness,
+			newTopFitness : newTopFitness,
 			staleness : staleness,
 			genomes : genomes,
-			averageRank : averageRank,
-			computeAverageRank : computeAverageRank,
+			getAverageRank : getAverageRank,
 			breedChild : breedChild
 		});
 	},
@@ -129,13 +130,14 @@ function createPool(spec) {
 		specie.genomes[currentGenome].setFitness(fitness);
 		if (fitness > specie.topFitness) {
 			specie.topFitness = fitness;
+			specie.newTopFitness = true;
 			if (fitness > maxFitness) {
 				maxFitness = fitness;
 			}
 		}
 	},
 	cullSpecies = function(cutToOne) {
-		/* cut half of the species or all but one genome 
+		/* cut half genome of the species or all but one genome 
 		 * of the species */
 		var remaining;
 		species.forEach(function(specie) {
@@ -152,7 +154,10 @@ function createPool(spec) {
 		});
 	},
 	rankGlobally = function() {
-		/* rank each genome globally */
+		/* rank each genome globally
+		 * the genome with the best fitness 
+		 * is rank 0
+		 */
 		var global = [],
 		count;
 
@@ -177,41 +182,34 @@ function createPool(spec) {
 		 * staleSpecies integer 
 		 * but keep species that have the maxFitness */
 		var survived = [];
-		species.forEach(function (species) {
-			species.genomes.sort(function (a,b) {
-				return (a.getFitness() < b.getFitness);
-			});
-			if (species.genomes[0].getFitness() > species.topFitness) {
-				species.topFitness = species.genomes[0].getFitness();
-				species.staleness = 0;
+		species.forEach(function (specie) {
+			if (specie.newTopFitness) {
+				specie.staleness = 0;
 			} else {
-				species.staleness++;
+				specie.staleness++;
 			}
-			if (species.staleness < staleSpecies 
-					|| species.topFitness >= maxFitness) {
-				survived.push(species);
+			if (specie.staleness < staleSpecies 
+					|| specie.topFitness >= maxFitness) {
+				survived.push(specie);
 			}
 		});
 
 		species = survived;
 	},
-	totalAverageRank = function() {
-		/* return the average of all species average rank */
-		/* seems very useless */
-		var total = 0;
-		species.forEach(function(species) {
-			total += species.averageRank;
-		});
-		return total / species.length;
+	getTotalAverageRank = function() {
+		/* return the average rank
+		 * (sum from 0 to population-1)
+		 */
+		return population*(population-1)/2
 	},
 	removeWeakSpecies = function() {
 		/* remove species that averageRank above average of species average rank*/
 		var breed,
 		survived = [],
-		avg = totalAverageRank();
+		avg = getTotalAverageRank();
 		species.forEach(function(species) {
-			breed = species.averageRank - avg;
-			if (breed < 0) {
+			breed = species.getAverageRank() - avg;
+			if (breed <= 0) {
 				survived.push(species);
 			}
 		});
@@ -225,9 +223,10 @@ function createPool(spec) {
 			specie.genomes.forEach(function (genome) {
 				genome.setFitness(0);
 			});
-			specie.topFitness = 0;
+			specie.topFitness = -Infinity;
+			specie.newTopFitness = false;
 		});
-		maxFitness = 0;
+		maxFitness = -Infinity;
 	},
 	generation = 0,
 	newGeneration = function() {
@@ -243,17 +242,17 @@ function createPool(spec) {
 		});
 		removeWeakSpecies();
 
-		avg = totalAverageRank();
+		avg = getTotalAverageRank();
 		children = [];
 		species.forEach(function(specie) {
-			breed = Math.floor(avg / specie.averageRank)-1;
+			breed = Math.floor(avg / specie.getAverageRank())-1;
 			for (i=0; i<breed; i++) {
 				children.push(specie.breedChild());
 			}
 		});
 		cullSpecies(true);
 		while (children.length + species.length < population) {
-			randomSpecies = species[randomInteger(0,species.population)];
+			randomSpecies = species[randomInteger(0,species.length)];
 			children.push(randomSpecies.breedChild());
 		}
 		children.forEach(function(child) {
@@ -264,7 +263,7 @@ function createPool(spec) {
 			specie.genomes.forEach(function (genome) {
 				genome.setFitness(0);
 			});
-			specie.topFitness = 0;
+			specie.newTopFitness = false;
 		});
 
 		generation++;
@@ -273,9 +272,9 @@ function createPool(spec) {
 		/* set the current genome the next one 
 		 * and create a new generation of genome 
 		 * if no next */
-		if (currentGenome < (species[currentSpecies].length-1)) {
+		if (currentGenome < (species[currentSpecies].genomes.length-1)) {
 			currentGenome++;
-		} else if (currentSpecies < (species[currentSpecies].length-1)) {
+		} else if (currentSpecies < (species.length-1)) {
 			currentGenome = 0;
 			currentSpecies++;
 		} else {
@@ -316,7 +315,7 @@ function createPool(spec) {
 	}
 
 	/* return the pool object */
-	return Object.freeze({
+	return Object({
 		/* public method */
 		save : save,
 		evaluateCurrentGenome : evaluateCurrentGenome,
@@ -333,10 +332,12 @@ function createPool(spec) {
 		cullSpecies : cullSpecies,
 		rankGlobally : rankGlobally,
 		removeStaleSpecies : removeStaleSpecies,
-		totalAverageRank : totalAverageRank,
+		getTotalAverageRank : getTotalAverageRank,
 		removeWeakSpecies : removeWeakSpecies,
 		resetAllFitness : resetAllFitness,
 		newGeneration : newGeneration,
+		getSpecies : function() {return species;},
+		setMaxFitness : function(n) {maxFitness = n;},
 		/* end debug */
 
 	});
