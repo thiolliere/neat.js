@@ -56,16 +56,16 @@ the specification are :
 * numberOfInputs 									: the length of the array of inputs
 * numberOfOuputs									: the length of the array of outputs
 
-* population					[300]				: the length of the population
+* population					[200]				: the length of the population
 * deltaDisjoint 				[2.0]
 * deltaWeights 					[0.4]
 * deltaThreshold 				[1.0]
 * staleSpecies 					[15]
-* mutateConnectionsChances 		[0.25]
+* mutateConnectionsChances 		[0.50]
 * perturbChance 				[0.90]
-* crossoverChance 				[0.75]
-* linkMutationChance 			[3.0]
-* nodeMutationChance 			[2.0]
+* crossoverChance 				[0.50]
+* linkMutationChance 			[2.0]
+* nodeMutationChance 			[1.0]
 * biasMutationChance 			[0.40]
 * stepSize						[0.1]
 * disableMutationChance 		[0.4]

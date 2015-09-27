@@ -2,19 +2,19 @@
 
 function createNeat(spec) {
 	var spec = spec || {},
-	population = spec.population || 100, // assert > 0
+	population = spec.population || 200, // assert > 0
 
 	deltaDisjoint = spec.deltaDisjoint || 2.0,
 	deltaWeights = spec.deltaWeights || 0.4,
 	deltaThreshold = spec.deltaThreshold || 1.0,
 
 	staleSpecies = spec.staleSpecies || 15,
-	crossoverChance = spec.crossoverChance || 0.75,
+	crossoverChance = spec.crossoverChance || 0.50,
 
-	mutateConnectionsChances = spec.mutateConnectionsChances || 0.25,
+	mutateConnectionsChances = spec.mutateConnectionsChances || 0.50,
 	perturbChance = spec.perturbChance || 0.90,
-	linkMutationChance = spec.linkMutationChance || 3.0,
-	nodeMutationChance = spec.nodeMutationChance || 2.0,
+	linkMutationChance = spec.linkMutationChance || 2.0,
+	nodeMutationChance = spec.nodeMutationChance || 1.0,
 	biasMutationChance = spec.biasMutationChance || 0.40,
 	stepSize = spec.stepSize || 0.1,
 	disableMutationChance = spec.disableMutationChance || 0.4,

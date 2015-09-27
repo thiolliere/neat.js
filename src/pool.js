@@ -247,7 +247,7 @@ function createPool(spec) {
 	},
 	newGeneration = function() {
 		/* create a new generation of genome  */
-		var avg,children,randomSpecies,breed,i;
+		var avg,children=[],randomSpecies,breed,i;
 
 		cullSpecies(false);
 		removeStaleSpecies();
@@ -258,7 +258,6 @@ function createPool(spec) {
 			removeWeakSpecies();
 
 			avg = getTotalAverageRank();
-			children = [];
 			species.forEach(function(specie) {
 				breed = Math.floor(avg / specie.getAverageRank())-1;
 				for (i=0; i<breed; i++) {

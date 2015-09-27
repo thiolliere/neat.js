@@ -215,16 +215,13 @@ function createGenomeConstrutor(spec) {
 				}
 				return false;
 			};
-			while (node1 === node2
+			while (!network[node1] || !network[node1] || node1 === node2
 					|| isAnOutput(node1)
 					) {
 				node1 = randomInteger(0,network.length);
 				node2 = randomInteger(numberOfInputs,network.length);
-				if (!network[node1] || !network[node2]) {
-					console.log("n1",node1,"n2",node2,"netowrk",network);
-					throw("errr");
-				}
-				if (network[node1].layer > network[node2].layer) {
+				if (network[node1] && network[node2] &&
+						network[node1].layer > network[node2].layer) {
 					tmp = node1;
 					node1 = node2;
 					node2 = tmp;
