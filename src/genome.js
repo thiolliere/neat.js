@@ -220,6 +220,10 @@ function createGenomeConstrutor(spec) {
 					) {
 				node1 = randomInteger(0,network.length);
 				node2 = randomInteger(numberOfInputs,network.length);
+				if (!network[node1] || !network[node2]) {
+					console.log("n1",node1,"n2",node2,"netowrk",network);
+					throw("errr");
+				}
 				if (network[node1].layer > network[node2].layer) {
 					tmp = node1;
 					node1 = node2;

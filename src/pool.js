@@ -53,7 +53,8 @@ function createPool(spec) {
 		//		display : display
 	}),
 	species = [], // array of species
-	maxFitness = -Infinity, // the max fitness of all genome
+	topFitness = -Infinity,
+	bestGenome = undefined,
 	newSpecies = function() {
 		var topFitness = -Infinity, // the max fitness of genomes in the species
 		newTopFitness = false, // whether the species get a new top fitness 
@@ -124,6 +125,13 @@ function createPool(spec) {
 		/* evaluate the network of the current genome given inputs */
 		return species[currentSpecies].genomes[currentGenome].evaluateNetwork(inputs);
 	},
+	evaluateBestGenome = function(inputs) {
+		if (bestGenome) {
+			return bestGenome.evaluateNetwork(inputs);
+		} else {
+			return evaluateCurrentGenome(inputs);
+		}
+	},
 	setFitnessOfCurrentGenome = function(fitness) {
 		/* set the fitness of the current genome */
 		var specie = species[currentSpecies];
@@ -131,8 +139,9 @@ function createPool(spec) {
 		if (fitness > specie.topFitness) {
 			specie.topFitness = fitness;
 			specie.newTopFitness = true;
-			if (fitness > maxFitness) {
-				maxFitness = fitness;
+			if (fitness > topFitness) {
+				topFitness = fitness;
+				bestGenome = specie.genomes[currentGenome].copy();
 			}
 		}
 	},
@@ -189,7 +198,7 @@ function createPool(spec) {
 				specie.staleness++;
 			}
 			if (specie.staleness < staleSpecies 
-					|| specie.topFitness >= maxFitness) {
+					|| specie.topFitness >= topFitness) {
 				survived.push(specie);
 			}
 		});
@@ -226,7 +235,7 @@ function createPool(spec) {
 			specie.topFitness = -Infinity;
 			specie.newTopFitness = false;
 		});
-		maxFitness = -Infinity;
+		topFitness = -Infinity;
 	},
 	generation = 0,
 	getPopulation = function() {
@@ -243,18 +252,28 @@ function createPool(spec) {
 		cullSpecies(false);
 		removeStaleSpecies();
 
-		rankGlobally();
-		removeWeakSpecies();
+		if (species.length !== 0) {
 
-		avg = getTotalAverageRank();
-		children = [];
-		species.forEach(function(specie) {
-			breed = Math.floor(avg / specie.getAverageRank())-1;
-			for (i=0; i<breed; i++) {
-				children.push(specie.breedChild());
+			rankGlobally();
+			removeWeakSpecies();
+
+			avg = getTotalAverageRank();
+			children = [];
+			species.forEach(function(specie) {
+				breed = Math.floor(avg / specie.getAverageRank())-1;
+				for (i=0; i<breed; i++) {
+					children.push(specie.breedChild());
+				}
+			});
+			cullSpecies(true);
+
+		} else {
+			if (bestGenome) {
+				addToSpecies(bestGenome);
+			} else {
+				addToSpecies(newGenome());
 			}
-		});
-		cullSpecies(true);
+		}
 
 		while (children.length + getPopulation() < population) {
 			randomSpecies = species[randomInteger(0,species.length)];
@@ -324,6 +343,7 @@ function createPool(spec) {
 		/* public method */
 		save : save,
 		evaluateCurrentGenome : evaluateCurrentGenome,
+		evaluateBestGenome : evaluateBestGenome,
 		setFitnessOfCurrentGenome : setFitnessOfCurrentGenome,
 		setCurrentGenomeNextOne : setCurrentGenomeNextOne,
 		setCurrentGenomeFirstOne : setCurrentGenomeFirstOne,
@@ -342,7 +362,7 @@ function createPool(spec) {
 		resetAllFitness : resetAllFitness,
 		newGeneration : newGeneration,
 		getSpecies : function() {return species;},
-		setMaxFitness : function(n) {maxFitness = n;},
+		setMaxFitness : function(n) {topFitness = n;},
 		/* end debug */
 
 	});

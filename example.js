@@ -15,10 +15,11 @@ var graphRenderer = new sigma({
 
 
 var brain,
-	numberOfGame = 10000,
+	numberOfGame = 100000,
 	numberOfHand =100,
-	delayBetweenGame = 0.1,
-	gameInc = 0;
+	delayBetweenGame = 0.0001,
+	gameInc = 0,
+	bestScore = -Infinity;
 
 brain = createNeat({
 	numberOfInputs : 2,
@@ -39,7 +40,7 @@ function playGame () {
 	j;
 
 	gameInc++;
-	for (j=0; j<numberOfGame; j++) {
+	for (j=0; j<numberOfHand; j++) {
 		act = Math.floor(Math.random()*3);
 		inputs = [act & 01, (act & 02)>> 01];
 		outputs = round(brain.compute(inputs));
@@ -49,7 +50,7 @@ function playGame () {
 			throw("error");
 		}
 		reply = outputs[0] + 2*outputs[1];
-		if (reply === 4) {
+		if (reply === 3) {
 			score--;
 		} else if (act === reply - 1 || act == reply + 2) {
 			score++;
@@ -58,6 +59,9 @@ function playGame () {
 		}
 	}
 	brain.setFitness(score);
+	if (score > bestScore) {
+		bestScore = score;
+	}
 
 	if (gameInc%100 === 0) {
 		updateScreen();
@@ -83,6 +87,16 @@ function updateScreen() {
 
 	text = "game "+gameInc+"; replies : \n\trock->"+tab[replies[0]]+"\tpaper->"+tab[replies[1]]+"\tscissors->"+tab[replies[2]];
 
+	outputs = round(brain.bestCompute([0,0]));
+	replies[0] = outputs[0] + 2*outputs[1];
+	outputs = round(brain.bestCompute([1,0]));
+	replies[1] = outputs[0] + 2*outputs[1];
+	outputs = round(brain.bestCompute([0,1]));
+	replies[2] = outputs[0] + 2*outputs[1];
+
+	text = text+"                            best score : "+bestScore+"; replies : \n\trock->"+tab[replies[0]]+"\tpaper->"+tab[replies[1]]+"\tscissors->"+tab[replies[2]];
+
+
 	p = document.getElementById("text_information");
 	p.replaceChild(document.createTextNode(text),p.firstChild);
 
@@ -94,7 +108,7 @@ function updateScreen() {
 		id : gameInc,
 		label : -brain.getFitness(),
 		x : gameInc,
-		y : -brain.getFitness(),
+		y : -brain.getFitness()*100,
 		size : 1,
 		color : '#555'
 	});

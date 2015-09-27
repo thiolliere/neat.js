@@ -2,7 +2,7 @@
 
 function createNeat(spec) {
 	var spec = spec || {},
-	population = spec.population || 300, // assert > 0
+	population = spec.population || 100, // assert > 0
 
 	deltaDisjoint = spec.deltaDisjoint || 2.0,
 	deltaWeights = spec.deltaWeights || 0.4,
@@ -13,12 +13,12 @@ function createNeat(spec) {
 
 	mutateConnectionsChances = spec.mutateConnectionsChances || 0.25,
 	perturbChance = spec.perturbChance || 0.90,
-	linkMutationChance = spec.linkMutationChance || 2.0,
-	nodeMutationChance = spec.nodeMutationChance || 0.50,
+	linkMutationChance = spec.linkMutationChance || 3.0,
+	nodeMutationChance = spec.nodeMutationChance || 2.0,
 	biasMutationChance = spec.biasMutationChance || 0.40,
 	stepSize = spec.stepSize || 0.1,
 	disableMutationChance = spec.disableMutationChance || 0.4,
-	enableMutationChance = spec.enableMutationChance || 0.2,
+	enableMutationChance = spec.enableMutationChance || 0.3,
 
 	numberOfInputs = spec.numberOfInputs, // assert exist
 	numberOfOuputs = spec.numberOfOuputs, // assert exist
@@ -80,6 +80,9 @@ function createNeat(spec) {
 	},
 	getSigmaNetwork = function() {
 		return pool.exportSigmaCurrent();
+	},
+	bestCompute = function(inputs) {
+		return pool.evaluateBestGenome(inputs);
 	};
 
 	return Object.freeze({
@@ -90,8 +93,6 @@ function createNeat(spec) {
 		evolve : evolve,
 		changeFitnessEvaluation : changeFitnessEvaluation,
 		getSigmaNetwork : getSigmaNetwork,
-		/*TODO
-		 * bestCompute
-		 */
+		bestCompute : bestCompute,
 	});
 }

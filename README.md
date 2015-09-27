@@ -2,7 +2,8 @@
 
 javascript implementation of NEAT algorithm.
 
-it is a work in progress, it doesn't work yet
+it works but does not compete at all with the "official"
+implementation in java, C++ and C#.
 
 # What is NEAT
 
@@ -63,17 +64,12 @@ the specification are :
 * mutateConnectionsChances 		[0.25]
 * perturbChance 				[0.90]
 * crossoverChance 				[0.75]
-* linkMutationChance 			[2.0]
-* nodeMutationChance 			[0.50]
+* linkMutationChance 			[3.0]
+* nodeMutationChance 			[2.0]
 * biasMutationChance 			[0.40]
 * stepSize						[0.1]
 * disableMutationChance 		[0.4]
-* enableMutationChance			[0.2]
-* display = {
-		line : 					[numberOfInputs]
-		column : 				[1]
-		bps : 					[1]
-	};
+* enableMutationChance			[0.3]
 
 ### game loop
 
@@ -93,6 +89,10 @@ the way you are evaluating the fitness of networks so
 even if the new evaluation is in average higher than the older,
 some networks aren't wasted because the were evaluating by the
 older.
+
+and the genome with the best fitness is save in the memory so
+if you can get the best computation by calling the method 
+bestCompute(inputs).
 
 # How it works 
 
