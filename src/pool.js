@@ -53,7 +53,7 @@ function createPool(spec) {
 		//		display : display
 	}),
 	species = [], // array of species
-	maxFitness, // the max fitness of all genome
+	maxFitness = -Infinity, // the max fitness of all genome
 	newSpecies = function() {
 		var topFitness = -Infinity, // the max fitness of genomes in the species
 		newTopFitness = false, // whether the species get a new top fitness 
@@ -156,7 +156,7 @@ function createPool(spec) {
 	rankGlobally = function() {
 		/* rank each genome globally
 		 * the genome with the best fitness 
-		 * is rank 0
+		 * is rank 1
 		 */
 		var global = [],
 		count;
@@ -171,7 +171,7 @@ function createPool(spec) {
 			return (a.getFitness() < b.getFitness());
 		});
 
-		count = 0;
+		count = 1;
 		global.forEach(function(genome) {
 			genome.setGlobalRank(count);
 			count++;
@@ -198,9 +198,9 @@ function createPool(spec) {
 	},
 	getTotalAverageRank = function() {
 		/* return the average rank
-		 * (sum from 0 to population-1)
+		 * (sum from 1 to population)/population
 		 */
-		return population*(population-1)/2
+		return (population+1)/2
 	},
 	removeWeakSpecies = function() {
 		/* remove species that averageRank above average of species average rank*/
@@ -229,6 +229,13 @@ function createPool(spec) {
 		maxFitness = -Infinity;
 	},
 	generation = 0,
+	getPopulation = function() {
+		var pop = 0;
+		species.forEach(function(species) {
+			pop += species.genomes.length;
+		});
+		return pop;
+	},
 	newGeneration = function() {
 		/* create a new generation of genome  */
 		var avg,children,randomSpecies,breed,i;
@@ -237,9 +244,6 @@ function createPool(spec) {
 		removeStaleSpecies();
 
 		rankGlobally();
-		species.forEach(function(specie) {
-			specie.computeAverageRank();
-		});
 		removeWeakSpecies();
 
 		avg = getTotalAverageRank();
@@ -251,7 +255,8 @@ function createPool(spec) {
 			}
 		});
 		cullSpecies(true);
-		while (children.length + species.length < population) {
+
+		while (children.length + getPopulation() < population) {
 			randomSpecies = species[randomInteger(0,species.length)];
 			children.push(randomSpecies.breedChild());
 		}

@@ -39,7 +39,7 @@ function createGenomeConstrutor(spec) {
 			enable : enableMutationChance,
 			disable : disableMutationChance,
 			bias : biasMutationChance,
-			stepSize : stepSize
+			stepSize : stepSize,
 		},
 		genes = [], 
 		newGene = function() {
@@ -152,6 +152,10 @@ function createGenomeConstrutor(spec) {
 			/* take an array of inputs and return an array of outputs */
 			var i, sum, outputs = [];
 
+			network.forEach(function(node) {
+				value = 0;
+			});
+
 			for (i=0; i<numberOfInputs; i++) {
 				network[i].value = inputs[i];
 			}
@@ -189,7 +193,7 @@ function createGenomeConstrutor(spec) {
 		},
 		pointMutate = function() {
 			/* mutate the weight of genes with randomness */
-			var step = mutationRates.stepsize;
+			var step = mutationRates.stepSize;
 			genes.forEach(function(gene) {
 				if (Math.random() < perturbChance) {
 					gene.weight += Math.random()*step*2 - step;

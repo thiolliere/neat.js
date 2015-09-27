@@ -25,28 +25,9 @@ var createNewInnovation = function() {
 		crossoverChance : 0.75,
 		population : 6,
 	},
-	pool = createPool({
-		pertubChance : 0.90,	
-		mutationConnetionsChance : 0.25,
-		linkMutationChance : 2.0,
-		nodeMutationChance : 0.50,
-		enableMutationChance : 0.2,
-		disableMutationChance : 0.4,
-		stepSize : 0.1,
-		numberOfInputs : 3,
-		numberOfOuputs : 2,
-		newInnovation : createNewInnovation(),
-		deltaDisjoint : 2.0,
-		deltaWeights : 0.4,
-		deltaThreshold : 1.0,
-
-		staleSpecies : 15,
-		crossoverChance : 0.75,
-		population : 6,
-	}),
+	pool = createPool(arg),
 	delay=500,
 	s = new sigma({
-		graph : {nodes:[{id:"7",x:0,y:0}]},
 		container : 'container',
 		settings : {
 			maxEdgeSize : 10
@@ -126,7 +107,41 @@ var createNewInnovation = function() {
 	},
 	six = function() {
 		console.log('#6 breedChild');
+		pool = createPool(arg);
+		pool.addToSpecies(pool.getSpecies()[0].breedChild());
+		pool.addToSpecies(pool.getSpecies()[1].breedChild());
+		pool.addToSpecies(pool.getSpecies()[1].breedChild());
+		console.log('species : ',pool.getSpecies());
+
+		console.log('----');
+		window.setTimeout(seven,delay);
+	},
+	seven = function() {
+		console.log('#7 newGeneration');
+		pool = createPool(arg);
+		pool.newGeneration();
+		console.log('species : ',pool.getSpecies());
+		console.log('----');
+		window.setTimeout(eight,delay);
+	},
+	eight = function() {
+		var ev;
+		console.log('#8 newGeneration + computenetwork');
+		pool = createPool(arg);
+		for (var i=0; i<arg.population*100; i++) {
+			ev = pool.evaluateCurrentGenome([0,0,0]);
+			if (isNaN(ev[0]) || isNaN(ev[1])) {
+				throw("error");
+			}
+
+			pool.setCurrentGenomeNextOne();
+		}
+
+		console.log('species : ',pool.getSpecies());
+		console.log('----');
+		window.setTimeout(nine,delay);
+	},
+	nine = function() {
 	};
 
 one();
-

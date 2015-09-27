@@ -15,9 +15,9 @@ var graphRenderer = new sigma({
 
 
 var brain,
-	numberOfGame = 100,
+	numberOfGame = 10000,
 	numberOfHand =100,
-	delayBetweenGame = 5,
+	delayBetweenGame = 0.1,
 	gameInc = 0;
 
 brain = createNeat({
@@ -26,6 +26,13 @@ brain = createNeat({
 	population : 10
 });
 
+function round(array) {
+	var result = [];
+	for (var i=0; i<array.length; i++) {
+		result[i] = Math.round(array[i]);
+	}
+	return result;
+}
 function playGame () {
 	var score = 0,
 	act,reply,inputs,outputs,
@@ -35,9 +42,16 @@ function playGame () {
 	for (j=0; j<numberOfGame; j++) {
 		act = Math.floor(Math.random()*3);
 		inputs = [act & 01, (act & 02)>> 01];
-		outputs = brain.compute(inputs);
+		outputs = round(brain.compute(inputs));
+		if (isNaN(outputs[0]) || isNaN(outputs[1])) {
+			console.log(brain.getSigmaNetwork());
+			updateScreen();
+			throw("error");
+		}
 		reply = outputs[0] + 2*outputs[1];
-		if (act === reply - 1 || act == reply + 2) {
+		if (reply === 4) {
+			score--;
+		} else if (act === reply - 1 || act == reply + 2) {
 			score++;
 		} else if(act !== reply) {
 			score--;
@@ -45,7 +59,7 @@ function playGame () {
 	}
 	brain.setFitness(score);
 
-	if (gameInc%10 === 0) {
+	if (gameInc%100 === 0) {
 		updateScreen();
 	}
 	brain.evolve();
@@ -58,13 +72,13 @@ playGame();
 
 function updateScreen() {
 	var outputs,intputs,text,replies = [],
-	tab = ["rock","paper","scissorts"];
+	tab = ["rock","paper","scissors","fail"];
 
-	outputs = brain.compute([0,0]);
+	outputs = round(brain.compute([0,0]));
 	replies[0] = outputs[0] + 2*outputs[1];
-	outputs = brain.compute([0,1]);
+	outputs = round(brain.compute([1,0]));
 	replies[1] = outputs[0] + 2*outputs[1];
-	outputs = brain.compute([1,1]);
+	outputs = round(brain.compute([0,1]));
 	replies[2] = outputs[0] + 2*outputs[1];
 
 	text = "game "+gameInc+"; replies : \n\trock->"+tab[replies[0]]+"\tpaper->"+tab[replies[1]]+"\tscissors->"+tab[replies[2]];

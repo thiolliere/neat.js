@@ -81,94 +81,12 @@ var createNewInnovation = function() {
 		s.graph.clear();
 		s.graph.read(third.exportSigma());
 		s.refresh();
+
+		window.setTimeout(six, delay);
+	},
+	six = function() {
+		basic = genomeConstructor();
+		console.log("evaluate : ",basic.evaluateNetwork([1,1,1]));
 	};
 
 one();
-
-
-
-
-
-
-
-
-
-
-
-
-
-//var mutate = function() {
-//	basic.mutate();
-//	basic.evaluateNetwork([1,1,0]);
-//	console.log("test constructor");
-//	console.log(basic.exportSigma());
-//}
-//
-//for (var i=0; i<1; i++) {
-//	mutate();
-//}
-
-
-//s.graph.read(basic.exportSigma());
-//s.refresh();
-
-/* test private method 
-   console.log("test linkMutate");
-   basic.linkMutate();
-   basic.generateNetwork();
-   console.log(basic.exportSigma());
-
-   console.log("test containsLink");
-   console.log(basic.containsLink(basic.genes[0]));
-
-   console.log("test nodeMutate");
-   basic.nodeMutate();
-   basic.generateNetwork();
-   console.log(basic.exportSigma());
-
-   console.log("test pointMutate");
-   basic.pointMutate();
-   basic.generateNetwork();
-   console.log(basic.exportSigma());
-	/* end test private method */
-
-	/*console.log("test mutate basic");
-	  basic.mutate();
-	  basic.generateNetwork();
-	  console.log("basic : ");
-	  console.log(basic.exportSigma());
-
-	  console.log("test copy");
-	  other = basic.copy();
-	  basic.generateNetwork();
-	  other.generateNetwork();
-	  console.log("basic : ");
-	  console.log(basic.exportSigma());
-	  console.log("other : ");
-	  console.log(other.exportSigma());
-
-	  var i;
-	  for (i = 0; i<10; i++) {
-	  console.log("test mutate other");
-	  other.mutate();
-	  basic.generateNetwork();
-	  other.generateNetwork();
-	  console.log("basic : ");
-	  console.log(basic.exportSigma());
-	  console.log("other : ");
-	  console.log(other.exportSigma());
-	  console.log("same species ?");
-	  console.log(basic.sameSpecies(other));
-	  }
-
-	  for (i=0; i<10; i++) {
-	  console.log("test crossover");
-	  basic.crossover(other);
-	  basic.generateNetwork();
-	  other.generateNetwork();
-	  console.log("basic : ");
-	  console.log(basic.exportSigma());
-	  console.log("other : ");
-	  console.log(other.exportSigma());
-	  }
-	  */
