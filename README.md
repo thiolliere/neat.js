@@ -5,6 +5,11 @@ javascript implementation of NEAT algorithm.
 it works but does not compete at all with the "official"
 implementation in java, C++ and C#.
 
+this work still have some bug, I'm not working on it now, 
+if you want a javascript neat algorithm you must look at
+emscripten to compile C/C++ into javascript (more precisely
+a faster subset) and make a binding of it.
+
 # What is NEAT
 
 NeuroEvolution of Augmenting Topologies (NEAT) is a genetic 
