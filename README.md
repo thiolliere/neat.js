@@ -2,8 +2,9 @@
 
 javascript implementation of NEAT algorithm.
 
-it works but does not compete at all with the "official"
-implementation in java, C++ and C#.
+it doesn't completely work
+
+but other implementations exist in java, C++ and C#.
 
 this work still have some bug, I'm not working on it now, 
 if you want a javascript neat algorithm you must look at
